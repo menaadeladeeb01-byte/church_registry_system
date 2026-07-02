@@ -1,6 +1,5 @@
 import pool from '../config/db.js';
 
-// 🎯 دالة لإضافة عائلة جديدة في الداتا بيز
 const createFamily = async (familyData) => {
     const { name, place, phone_number, church_id } = familyData;
     
@@ -11,9 +10,21 @@ const createFamily = async (familyData) => {
     `;
     
     const res = await pool.query(query, [name, place, phone_number, church_id]);
-    return res.rows[0]; // بنرجع العائلة اللي اتكريتت فوراً
+    return res.rows[0]; 
+};
+
+const findFamilyByPhone = async (phone_number, church_id) => {
+    const query = `
+        SELECT * FROM families 
+        WHERE phone_number = $1 AND church_id = $2;
+    `;  
+
+    const res = await pool.query(query, [phone_number, church_id]);
+    return res.rows[0];
 };
 
 export default {
-    createFamily
+    createFamily,
+    findFamilyByPhone
 };
+
