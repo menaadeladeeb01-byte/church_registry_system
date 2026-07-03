@@ -43,3 +43,13 @@ create table family_events (
     church_id int not null references church (id)
 
 );
+
+
+
+CREATE TABLE refresh_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE, 
+    token TEXT NOT NULL UNIQUE,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

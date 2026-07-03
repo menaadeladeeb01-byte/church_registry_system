@@ -26,6 +26,66 @@ const addFamily = async (req, res, next) => {
     }
 };
 
+const getAllFamilies = async (req , res , next) =>{
+    try{
+    const churchId = req.user.churchId;
+    const {search} = req.query ;
+
+    const families = await familyServices.fetchAllFamilies(churchId , search);
+
+return res.status(200).json({
+    success : true , 
+    message : "Families fetched successfully!",
+    count : families.length , 
+    data: {
+        families
+    }
+})
+
+}catch(error){
+    next(error);
+}
+}
+    const updateFamily = async (req , res , next) =>{
+        try{
+            const familyId = req.params.Id;
+            const {name , place , phone_number} = req.body ; 
+            const churchId = req.user.churchId ;
+
+    const family = await familyServices.updatedFamily(familyId , {name , place , phone_number},churchId);
+        return res.status(200).json({
+            success : true , 
+            message : 'family updated successfully!' , 
+            family
+})
+
+}       catch(error){
+            next(error);
+}
+
+}
+    const deleteFamily = async (req , res , next) =>{
+
+        try{
+            const familyId = req.params.Id;
+            const churchId = req.user.churchId;
+            await familyServices.deleteFamily(familyId, churchId);
+
+            return res.status(200).json({
+                success : true , 
+                message : 'family deleted successfully!'
+            })
+
+        }catch(error){
+            next(error);
+        }
+
+    }
+
+
 export default {
-    addFamily
+    addFamily,
+    getAllFamilies,
+    updateFamily,
+    deleteFamily
 };
