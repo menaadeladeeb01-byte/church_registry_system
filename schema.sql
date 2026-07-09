@@ -21,29 +21,27 @@ create table families (
     church_id int not null references church (id)
 );
 
-create table members (
-    id serial primary key ,
-    name varchar(100) not null , 
-    date_of_birth date not null ,
-    phone_number varchar(11) not null,
-    national_id varchar (14) unique ,
-    gender varchar (10) not null , 
-    status varchar(20) not null default 'ALIVE',
-    family_id int not null references families (id),
-    church_id int not null references church (id)
-
+CREATE TABLE members (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL, 
+    date_of_birth DATE NOT NULL,
+    phone_number VARCHAR(20), 
+    national_id VARCHAR(14) UNIQUE, 
+    gender VARCHAR(10) NOT NULL CHECK (gender IN ('MALE', 'FEMALE')), 
+    status VARCHAR(20) NOT NULL DEFAULT 'ALIVE' CHECK (status IN ('ALIVE', 'DECEASED')), 
+    family_id INT NOT NULL REFERENCES families (id) ON DELETE CASCADE, 
+    church_id INT NOT NULL REFERENCES church (id) ON DELETE CASCADE
 );
 
-create table family_events (
-    id serial primary key , 
-    event_date date not null,
-    event_type varchar (200) not null ,
-    notes text ,
-    member_id int not null references members (id),
-    church_id int not null references church (id)
-
+CREATE TABLE family_events (
+    id SERIAL PRIMARY KEY, 
+    event_date DATE NOT NULL,
+    event_type VARCHAR(200) NOT NULL,
+    notes TEXT,
+    
+    member_id INT NOT NULL REFERENCES members (id) ON DELETE CASCADE,
+    church_id INT NOT NULL REFERENCES church (id) ON DELETE CASCADE
 );
-
 
 
 CREATE TABLE refresh_tokens (
