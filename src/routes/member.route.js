@@ -9,5 +9,9 @@ router.get('/' , authMiddleware , memberController.getAllMembers);
 router.put('/:id' , authMiddleware , memberController.updateMember);
 router.delete('/:id' , authMiddleware , memberController.deleteMember);
 
+
+router.post('/events/death' , authMiddleware , memberController.recordDeathEvent);
+
 export default router ;
+
 

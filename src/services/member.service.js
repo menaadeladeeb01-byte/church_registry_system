@@ -1,5 +1,6 @@
 import memberRepo from "../repositories/member.repository.js";
 import AppError from "../utils/appError.js";
+import familyRepo from "../repositories/family.repository.js";
 
 const createNewMember = async (memberData)=>{
     const {name ,date_of_birth,phone_number, national_id , gender ,status , church_id , family_id} = memberData;
@@ -93,10 +94,56 @@ const deleteMember = async (memberId, churchId) => {
 };
 
 
+const recordDeathEvent = async (churchId , eventData) =>{
+
+    const { memberId , eventDate , notes , newHeadId } = eventData ;
+
+    const member = await memberRepo.findMemberByIdAndChurch(memberId , churchId);
+    if(!member){
+        throw new AppError("Member not found in your church!" , 404);
+    }
+    if(member.status === 'DECEASED'){
+        throw new AppError("This member is already recorded as deceased!" , 400);
+    }
+
+    const family = await familyRepo.findFamilyById(member.family_id);
+
+
+let isFamilyHead = false ;
+if(family && Number(family.head_id) === Number(memberId)){
+    isFamilyHead = true ;
+
+if(!newHeadId){
+    throw new AppError('This member is the Family Head! You must provide a new_head_id to lead this family' , 400);
+}
+   const newHead = await memberRepo.findMemberByIdAndChurch(newHeadId, churchId);
+   if(!newHead || Number(newHead.family_id) !== Number(member.family_id) ){
+    throw new AppError("The new family head must be an active member of the same family!" ,400);
+   }
+   if(newHead.status === 'DECEASED'){
+    throw new AppError('The new family head cannot be a deceased member' , 400);
+   }
+
+};
+return await memberRepo.executeDeathTransaction({
+    memberId , 
+    churchId , 
+    eventDate , 
+    notes , 
+    familyId : member.family_id , 
+    newHeadId , 
+    isFamilyHead
+})
+
+
+};
+
+
 export default {
     createNewMember,
     getAllMembers,
     updateMember ,
-    deleteMember
+    deleteMember,
+    recordDeathEvent
 
 }

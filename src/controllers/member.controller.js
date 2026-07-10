@@ -96,10 +96,44 @@ const deleteMember = async (req, res, next) => {
 };
 
 
+const recordDeathEvent = async (req , res , next ) =>{
+try{
+    const { memberId , eventDate , notes } = req.body ;
+    const newHeadId = req.body.newHeadId || req.body.newheadId || req.body.new_head_id || null;
+    const churchId = req.user.churchId;
+
+    if(!memberId){
+        return res.status(400).json({
+            success : false , 
+            message : "Member ID is required!"
+        })
+    }
+    const result = await memberService.recordDeathEvent(churchId , {
+        memberId : memberId ,
+        eventDate : eventDate || new Date(),
+        notes : notes || null , 
+        newHeadId
+    });
+
+    return res.status(200).json({
+        success : true , 
+        message : "Death event recorded successfully and family leadership updated!" , 
+        data : result
+    })
+
+
+}catch(error){
+    next(error);
+}
+
+};
+
+
 export default {
     addMember,
     getAllMembers,
     updateMember,
-    deleteMember
+    deleteMember,
+    recordDeathEvent
 
 }

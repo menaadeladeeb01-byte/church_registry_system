@@ -1,15 +1,15 @@
 import pool from '../config/db.js';
 
 const createFamily = async (familyData) => {
-    const { name, place, phone_number, church_id } = familyData;
+    const { name, place, phone_number , head_id , church_id } = familyData;
     
     const query = `
-        INSERT INTO families (name, place, phone_number, church_id) 
-        VALUES ($1, $2, $3, $4) 
+        INSERT INTO families (name, place, phone_number , head_id, church_id) 
+        VALUES ($1, $2, $3, $4 , $5) 
         RETURNING *;
     `;
     
-    const res = await pool.query(query, [name, place, phone_number, church_id]);
+    const res = await pool.query(query, [name, place, phone_number , head_id, church_id]);
     return res.rows[0]; 
 };
 
@@ -49,11 +49,28 @@ const findFamilyById = async (familyId) =>{
 
 }
 
-const updateFamily = async (familyId , familyData) =>{
+const updateFamily = async (familyId , churchId , familyData) =>{
 
-    const {name , place , phone_number}  = familyData ;
-    const query = 'update families set name = $1 , place = $2 , phone_number = $3 where id = $4 returning *';
-    const res = await pool.query(query , [name , place , phone_number , familyId ]);
+    const { name , place , phone_number , head_id }  = familyData ;
+    const query = `
+        UPDATE families 
+        SET 
+            name = COALESCE($1, name),
+            place = COALESCE($2, place),
+            phone_number = COALESCE($3, phone_number),
+            head_id = COALESCE($4, head_id)
+        WHERE id = $5 AND church_id = $6
+        RETURNING *;
+    `;
+
+    const res = await pool.query(query, [
+        name || null,
+        place || null,
+        phone_number || null,
+        head_id || null, 
+        familyId,
+        churchId 
+    ]);
     return res.rows[0];
 };
 

@@ -2,10 +2,10 @@ import familyRepo from '../repositories/family.repository.js';
 import AppError from '../utils/appError.js';
 
 const createNewFamily = async (familyData) => {
-    const { name, place, phone_number, church_id } = familyData;
+    const { name, place, phone_number, head_id ,  church_id } = familyData;
 
-    if (!name || !place || !phone_number || !church_id) {
-        throw new AppError('All fields (name, place, phone_number, church_id) are required!', 400);
+    if (!name || !place || !phone_number || !church_id ) {
+        throw new AppError('All fields (name, place, phone_number , head_id, church_id) are required!', 400);
     }
 
     const existingFamily = await familyRepo.findFamilyByPhone(phone_number, church_id);
@@ -13,7 +13,7 @@ const createNewFamily = async (familyData) => {
         throw new AppError('A family with this phone number is already registered in this church!', 400);
     }
 
-    const newFamily = await familyRepo.createFamily({ name, place, phone_number, church_id });
+    const newFamily = await familyRepo.createFamily({ name, place, phone_number , head_id , church_id });
 
     return newFamily;
 };
@@ -30,7 +30,7 @@ return await familyRepo.getFamilies(churchId , search);
 
 const updatedFamily = async (familyId , familyData, churchId) =>{
 
-const {name , place , phone_number} = familyData ;
+const {name , place  , head_id, phone_number} = familyData ;
 
 const existingFamily = await familyRepo.findFamilyById(familyId);
 if(!existingFamily || existingFamily.church_id !== churchId){
@@ -40,9 +40,10 @@ if(!existingFamily || existingFamily.church_id !== churchId){
 const finalData = {
     name : name || existingFamily.name , 
     place : place || existingFamily.place ,
-    phone_number : phone_number || existingFamily.phone_number
+    phone_number : phone_number || existingFamily.phone_number, 
+    head_id : head_id || existingFamily.head_id
 }
-const updatedFamily = await familyRepo.updateFamily(familyId , finalData);
+const updatedFamily = await familyRepo.updateFamily(familyId , churchId , finalData);
 
 return updatedFamily ;
 

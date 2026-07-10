@@ -18,6 +18,7 @@ create table families (
     name varchar(100) not null ,
     place varchar(200) not null,
     phone_number varchar (20) not null ,
+    head_id int references members (id) on delete set null ,
     church_id int not null references church (id)
 );
 

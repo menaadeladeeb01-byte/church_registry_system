@@ -105,6 +105,43 @@ const deleteMember = async (memberId) => {
     return res.rows[0];
 };
 
+const executeDeathTransaction = async (data) => {
+    const { memberId, churchId, familyId, isFamilyHead, newHeadId, eventDate, notes } = data;
+    
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const updateMemberQuery = `
+            UPDATE members SET status = 'DECEASED' WHERE id = $1 AND church_id = $2;
+        `;
+        await client.query(updateMemberQuery, [memberId, churchId]);
+
+        const insertEventQuery = `
+            INSERT INTO family_events (event_date, event_type, notes, member_id, church_id)
+            VALUES ($1, 'DEATH', $2, $3, $4);
+        `;
+        await client.query(insertEventQuery, [eventDate, notes, memberId, churchId]);
+
+        if (isFamilyHead) {
+            const updateFamilyHeadQuery = `
+                UPDATE families SET head_id = $1 WHERE id = $2 AND church_id = $3;
+            `;
+            await client.query(updateFamilyHeadQuery, [newHeadId, familyId, churchId]);
+        }
+
+        await client.query('COMMIT');
+        return { memberId, isFamilyHead, newHeadId, status: 'DECEASED' };
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
+};
+
 
 export default {
     findFamilyInChurch,
@@ -114,6 +151,7 @@ export default {
     getMembersCount , 
     findMemberByIdAndChurch,
     updateMember,
-    deleteMember
+    deleteMember,
+    executeDeathTransaction
 
 };

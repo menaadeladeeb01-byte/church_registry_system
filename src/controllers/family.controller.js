@@ -2,7 +2,7 @@ import familyServices from '../services/family.service.js';
 
 const addFamily = async (req, res, next) => {
     try {
-        const { name, place, phone_number } = req.body;
+        const { name, place, phone_number , head_id } = req.body;
       
         const church_id = req.user.churchId; 
 
@@ -10,6 +10,7 @@ const addFamily = async (req, res, next) => {
             name,
             place,
             phone_number,
+            head_id : head_id || null ,
             church_id
         });
 
@@ -49,10 +50,10 @@ return res.status(200).json({
     const updateFamily = async (req , res , next) =>{
         try{
             const familyId = req.params.Id;
-            const {name , place , phone_number} = req.body ; 
+            const {name , place , phone_number , head_id} = req.body ; 
             const churchId = req.user.churchId ;
 
-    const family = await familyServices.updatedFamily(familyId , {name , place , phone_number},churchId);
+    const family = await familyServices.updatedFamily(familyId , {name , place , phone_number , head_id},churchId);
         return res.status(200).json({
             success : true , 
             message : 'family updated successfully!' , 

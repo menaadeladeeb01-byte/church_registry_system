@@ -36,7 +36,7 @@ throw new appError ('Invalid email or password', 404);
 const accessToken = JWT.sign(
     { userId: existingUser.id, churchId: existingUser.church_id }, 
     process.env.JWT_SECRET || 'super-access-secret', 
-    { expiresIn: '20m' }
+    { expiresIn: '40m' }
 );
 
 const refreshToken = JWT.sign(
