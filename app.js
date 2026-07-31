@@ -1,8 +1,12 @@
 import express from 'express';
-
 import dotenv from 'dotenv';
 dotenv.config();
+
 import './src/config/db.js';
+
+import helmet from 'helmet';
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 
 import authRoutes from './src/routes/auth.route.js';
 import errorHandler from './src/middlewares/error.middleware.js';
@@ -14,22 +18,34 @@ const app = express();
 
 app.use(express.json());
 
-app.use('/api/auth',authRoutes);
 
-app.use('/api/families',familyRoutes);
+app.use(helmet());
 
-app.use('/api/members' , memberRoutes);
+app.use(cors({ 
+    origin: '*', 
+    credentials: true 
+}));
 
-app.use('/api/reports' , reportRoutes);
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: {
+        success: false,
+        message: 'طلبات كثيرة جداً من هذا الجهاز! يرجى المحاولة بعد 15 دقيقة.'
+    }
+});
+app.use('/api/', apiLimiter);
 
 
-// app.get('/get/health',(req , res)=>{
-//     res.json({
-//         statuse : "success" , message : "App is running smoothly!"
-//     });
-// });
+app.use('/api/auth', authRoutes);
+app.use('/api/families', familyRoutes);
+app.use('/api/members', memberRoutes);
+app.use('/api/reports', reportRoutes);
+
+app.get('/health', (req, res) => {
+    res.json({ success: true, message: "App is running smoothly on cloud!" });
+});
 
 app.use(errorHandler);
 
-export default app ; 
-
+export default app;
