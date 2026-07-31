@@ -3,7 +3,6 @@ import AppError from "../utils/appError.js";
 import familyRepo from "../repositories/family.repository.js";
 import xlsx from 'xlsx';
 
-// دالة تحويل تواريخ الإكسيل
 const parseExcelDate = (rawDate) => {
     if (!rawDate) return null;
     if (rawDate instanceof Date) {
@@ -31,7 +30,6 @@ export const parseExcelService = (fileBuffer) => {
     }
 
     return rawRows.map((row, index) => {
-        // 💡 البحث عن الاسم بجميع الاحتمالات (مع تنظيف المسافات الزائدة)
         const name = 
             row['الاسم'] || 
             row['اسم'] || 
@@ -40,7 +38,6 @@ export const parseExcelService = (fileBuffer) => {
             row['name'] || 
             row['Full Name'];
 
-        // ⚠️ فحص أمني: لو الصف مفيش فيه اسم
         if (!name || name.toString().trim() === '') {
             throw new Error(`الصف رقم ${index + 2} في ملف الإكسيل لا يحتوي على "اسم"! يرجى التأكد من كتابة رأس العمود بـ "الاسم" أو "Name".`);
         }

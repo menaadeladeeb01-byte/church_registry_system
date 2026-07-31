@@ -21,5 +21,4 @@ export default router ;
 import { uploadExcel } from '../middlewares/upload.middleware.js';
 import { bulkUploadMembers } from '../controllers/member.controller.js';
 
-// ⚠️ لاحظ السلسلة: 1. فحص التوكن -> 2. استقبال الملف مفتاحه 'file' -> 3. الـ Controller
 router.post('/upload-excel', authMiddleware, uploadExcel.single('file'), bulkUploadMembers);

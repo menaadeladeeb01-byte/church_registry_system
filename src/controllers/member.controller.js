@@ -151,7 +151,6 @@ import { bulkInsertMembersRepository } from '../repositories/member.repository.j
 
 export const bulkUploadMembers = async (req, res, next) => {
     try {
-        // 1. فحص هل الأمن (Multer) استلم الملف فعلاً ولا الـ Request جاي فاضي؟
         if (!req.file) {
             return res.status(400).json({ 
                 success: false, 
@@ -159,16 +158,12 @@ export const bulkUploadMembers = async (req, res, next) => {
             });
         }
 
-        // 2. استخراج الـ churchId المأمن من الـ JWT Token
         const churchId = req.user.churchId;
 
-        // 3. الخطوة 2 (المترجم): تحويل ملف الـ Excel لـ JSON Array
         const members = parseExcelService(req.file.buffer);
 
-        // 4. الخطوة 3 (كاتب السجل والحرَس): ضخ البيانات جوه Transaction
         const insertedCount = await bulkInsertMembersRepository(churchId, members);
 
-        // 5. إرجاع الـ Response المظبوط
         return res.status(201).json({
             success: true,
             message: `تم بنجاح رفع وتنسيق ${insertedCount} فرد داخل قاعدة البيانات!`,
@@ -176,7 +171,6 @@ export const bulkUploadMembers = async (req, res, next) => {
         });
 
     } catch (error) {
-        // لو حصل إيرور في الإكسيل أو في الداتابيز، الترانزاكشن بتعمل ROLLBACK وده بيرمي للـ Handler
         next(error);
     }
 };
