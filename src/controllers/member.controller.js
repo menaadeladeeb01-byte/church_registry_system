@@ -98,8 +98,7 @@ const deleteMember = async (req, res, next) => {
 
 const recordDeathEvent = async (req , res , next ) =>{
 try{
-    const { memberId , eventDate , notes } = req.body ;
-    const newHeadId = req.body.newHeadId || req.body.newheadId || req.body.new_head_id || null;
+    const { memberId , eventDate , notes , familyId , newHeadId } = req.body ;
     const churchId = req.user.churchId;
 
     if(!memberId){
@@ -112,7 +111,7 @@ try{
         memberId : memberId ,
         eventDate : eventDate || new Date(),
         notes : notes || null , 
-        newHeadId
+        newHead : newHeadId || null 
     });
 
     return res.status(200).json({
@@ -128,12 +127,67 @@ try{
 
 };
 
+const searchMembers = async (req , res , next) =>{
+try{
+    const churchId = req.user.churchId ;
+    const filters = req.query ;
+
+    const members = await memberService.searchMembers(churchId , filters);
+
+return res.status(200).json({
+    success : true , 
+    count : members.length , 
+    data : members 
+})
+
+}catch(error){
+    next(error);
+}
+};
+
+
+import { parseExcelService } from '../services/member.service.js';
+import { bulkInsertMembersRepository } from '../repositories/member.repository.js';
+
+export const bulkUploadMembers = async (req, res, next) => {
+    try {
+        // 1. فحص هل الأمن (Multer) استلم الملف فعلاً ولا الـ Request جاي فاضي؟
+        if (!req.file) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "عفواً، يرجى رفع ملف Excel في الـ Body!" 
+            });
+        }
+
+        // 2. استخراج الـ churchId المأمن من الـ JWT Token
+        const churchId = req.user.churchId;
+
+        // 3. الخطوة 2 (المترجم): تحويل ملف الـ Excel لـ JSON Array
+        const members = parseExcelService(req.file.buffer);
+
+        // 4. الخطوة 3 (كاتب السجل والحرَس): ضخ البيانات جوه Transaction
+        const insertedCount = await bulkInsertMembersRepository(churchId, members);
+
+        // 5. إرجاع الـ Response المظبوط
+        return res.status(201).json({
+            success: true,
+            message: `تم بنجاح رفع وتنسيق ${insertedCount} فرد داخل قاعدة البيانات!`,
+            insertedCount
+        });
+
+    } catch (error) {
+        // لو حصل إيرور في الإكسيل أو في الداتابيز، الترانزاكشن بتعمل ROLLBACK وده بيرمي للـ Handler
+        next(error);
+    }
+};
+
 
 export default {
     addMember,
     getAllMembers,
     updateMember,
     deleteMember,
-    recordDeathEvent
+    recordDeathEvent,
+    searchMembers
 
 }

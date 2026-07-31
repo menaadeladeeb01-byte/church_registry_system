@@ -142,6 +142,91 @@ const executeDeathTransaction = async (data) => {
     }
 };
 
+const searchMembers = async (churchId , filters) =>{
+const {name , minAge , maxAge , status , serviceType} = filters;
+
+let query = `
+        SELECT 
+            m.id , m.name , m.date_of_birth,
+            EXTRACT(YEAR FROM AGE(NOW(), m.date_of_birth))::INT AS age,
+            m.status,
+            m.family_id,
+            f.name AS family_name
+        from members m
+        left join families f on m.family_id = f.id
+        WHERE m.church_id = $1
+    `;
+
+    const queryParams = [churchId];
+    let paramIndex = 2 ;
+
+    if(name ){
+        query += ` AND m.name ILIKE $${paramIndex}`;
+        queryParams.push(`%${name}%`);
+        paramIndex++ ;
+}
+if (minAge !== undefined && minAge !== '') {
+        query += ` AND EXTRACT(YEAR FROM AGE(NOW(), m.date_of_birth)) >= $${paramIndex}`;
+        queryParams.push(parseInt(minAge));
+        paramIndex++;
+    }
+    if (maxAge !== undefined && maxAge !== '') {
+        query += ` AND EXTRACT(YEAR FROM AGE(NOW(), m.date_of_birth)) <= $${paramIndex}`;
+        queryParams.push(parseInt(maxAge));
+        paramIndex++;
+    }
+
+    if (status) {
+        query += ` AND m.status = $${paramIndex}`;
+        queryParams.push(status);
+        paramIndex++;
+    }
+
+    query += ` ORDER BY m.id DESC;`;
+    
+    const result = await pool.query(query, queryParams);
+    return result.rows;
+}
+
+
+
+export const bulkInsertMembersRepository = async (churchId, members) => {
+    // حجز Client حصري للـ Transaction
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN'); // 🔴 بداية الترانزاكشن
+
+        for (const member of members) {
+            await client.query(
+                `INSERT INTO members 
+                 (name, date_of_birth, phone_number, national_id, gender, status, family_id, church_id)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                [
+                    member.name,
+                    member.dateOfBirth,
+                    member.phoneNumber,
+                    member.nationalId,
+                    member.gender,
+                    member.status,
+                    member.familyId,
+                    churchId
+                ]
+            );
+        }
+
+        await client.query('COMMIT'); // 🟢 كل الصفوف اتكتبت صح؟ حفظ نهائي في الداتابيز!
+        return members.length;
+
+    } catch (error) {
+        await client.query('ROLLBACK'); // 🔴 سطر واحد ضرب إيرور؟ يلغى التراكات كلها فوراً!
+        throw error;
+    } finally {
+        client.release(); // إرجاع الـ Client للـ Pool
+    }
+};
+
+
 
 export default {
     findFamilyInChurch,
@@ -152,6 +237,7 @@ export default {
     findMemberByIdAndChurch,
     updateMember,
     deleteMember,
-    executeDeathTransaction
+    executeDeathTransaction,
+    searchMembers
 
 };

@@ -1,6 +1,63 @@
 import memberRepo from "../repositories/member.repository.js";
 import AppError from "../utils/appError.js";
 import familyRepo from "../repositories/family.repository.js";
+import xlsx from 'xlsx';
+
+// دالة تحويل تواريخ الإكسيل
+const parseExcelDate = (rawDate) => {
+    if (!rawDate) return null;
+    if (rawDate instanceof Date) {
+        return rawDate.toISOString().split('T')[0];
+    }
+    if (typeof rawDate === 'number' || !isNaN(Number(rawDate))) {
+        const dateObj = xlsx.SSF.parse_date_code(Number(rawDate));
+        if (dateObj) {
+            const yyyy = dateObj.y;
+            const mm = String(dateObj.m).padStart(2, '0');
+            const dd = String(dateObj.d).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+    }
+    return new Date(rawDate).toISOString().split('T')[0];
+};
+
+export const parseExcelService = (fileBuffer) => {
+    const workbook = xlsx.read(fileBuffer, { type: 'buffer', cellDates: true });
+    const sheetName = workbook.SheetNames[0];
+    const rawRows = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+    if (!rawRows || rawRows.length === 0) {
+        throw new Error('ملف الـ Excel فارغ أو لا يحتوي على صفوف صالحة!');
+    }
+
+    return rawRows.map((row, index) => {
+        // 💡 البحث عن الاسم بجميع الاحتمالات (مع تنظيف المسافات الزائدة)
+        const name = 
+            row['الاسم'] || 
+            row['اسم'] || 
+            row['إسم'] || 
+            row['Name'] || 
+            row['name'] || 
+            row['Full Name'];
+
+        // ⚠️ فحص أمني: لو الصف مفيش فيه اسم
+        if (!name || name.toString().trim() === '') {
+            throw new Error(`الصف رقم ${index + 2} في ملف الإكسيل لا يحتوي على "اسم"! يرجى التأكد من كتابة رأس العمود بـ "الاسم" أو "Name".`);
+        }
+
+        const rawDob = row['تاريخ الميلاد'] || row['Date of Birth'] || row['date_of_birth'];
+
+        return {
+            name: name.toString().trim(),
+            dateOfBirth: parseExcelDate(rawDob),
+            phoneNumber: (row['التليفون'] || row['Phone'] || row['phone'] || '').toString().trim() || null,
+            nationalId: (row['الرقم القومي'] || row['National ID'] || row['national_id'] || '').toString().trim() || null,
+            gender: (row['النوع'] || row['Gender'] || 'MALE').toString().toUpperCase().trim(),
+            status: (row['الحالة'] || row['Status'] || 'ALIVE').toString().toUpperCase().trim(),
+            familyId: parseInt(row['رقم العائلة'] || row['Family ID'] || row['family_id'])
+        };
+    });
+};
 
 const createNewMember = async (memberData)=>{
     const {name ,date_of_birth,phone_number, national_id , gender ,status , church_id , family_id} = memberData;
@@ -138,12 +195,18 @@ return await memberRepo.executeDeathTransaction({
 
 };
 
+const searchMembers = async(churchId , filters) =>{
+    return await memberRepo.searchMembers(churchId, filters);
+}
+
+
+
 
 export default {
     createNewMember,
     getAllMembers,
     updateMember ,
     deleteMember,
-    recordDeathEvent
-
+    recordDeathEvent,
+    searchMembers
 }
