@@ -59,13 +59,15 @@ export const parseExcelService = (fileBuffer) => {
 const createNewMember = async (memberData)=>{
     const {name ,date_of_birth,phone_number, national_id , gender ,status , church_id , family_id} = memberData;
 
-    if(!name || !date_of_birth || !phone_number || !gender || !family_id){
+    if(!name || !date_of_birth || !phone_number || !gender ){
 
-        throw new AppError('All fields (name, date_of_birth, phone_number, gender , family_id) are required!' , 400);
+        throw new AppError('All fields (name, date_of_birth, phone_number, gender ) are required!' , 400);
     }
-    const existingFamilyInChurch = await memberRepo.findFamilyInChurch(family_id , church_id);
-    if(!existingFamilyInChurch){
-        throw new AppError('The specified family does not exist in your church!',404);
+    
+    if(family_id){
+        const existingFamily = await memberRepo.findFamilyInChurch(family_id , church_id);
+        if(!existingFamily){
+            throw new AppError('The provided family_id does not exist in this church!' , 400);}
     }
 
     if(national_id){

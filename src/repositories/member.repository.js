@@ -191,12 +191,10 @@ if (minAge !== undefined && minAge !== '') {
 
 
 export const bulkInsertMembersRepository = async (churchId, members) => {
-    // حجز Client حصري للـ Transaction
     const client = await pool.connect();
 
     try {
-        await client.query('BEGIN'); // 🔴 بداية الترانزاكشن
-
+        await client.query('BEGIN'); 
         for (const member of members) {
             await client.query(
                 `INSERT INTO members 
@@ -215,14 +213,14 @@ export const bulkInsertMembersRepository = async (churchId, members) => {
             );
         }
 
-        await client.query('COMMIT'); // 🟢 كل الصفوف اتكتبت صح؟ حفظ نهائي في الداتابيز!
+        await client.query('COMMIT'); 
         return members.length;
 
     } catch (error) {
-        await client.query('ROLLBACK'); // 🔴 سطر واحد ضرب إيرور؟ يلغى التراكات كلها فوراً!
+        await client.query('ROLLBACK'); 
         throw error;
     } finally {
-        client.release(); // إرجاع الـ Client للـ Pool
+        client.release(); 
     }
 };
 

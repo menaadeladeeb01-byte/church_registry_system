@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة الكنيسة - Church Registry Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Cairo) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+    <!-- 🌐 رابط الـ Vercel الخاص بك -->
+    <script>
+        const API_BASE_URL = "https://church-registry-system.vercel.app"; 
+    </script>
+
+    <!-- 🔒 1️⃣ شاشة المصادقة (AUTH SCREEN) -->
+    <div id="authScreen" class="flex items-center justify-center min-h-screen px-4 py-8">
+        <div class="bg-slate-800 border border-slate-700 p-8 rounded-2xl shadow-2xl w-full max-w-md">
+            
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-600/20 text-blue-500 mb-3">
+                    <i class="fa-solid fa-church text-3xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-white">سجل الكنيسة الرقمي</h1>
+                <p class="text-slate-400 text-sm mt-1">نظام إدارة وخدمة شعب الكنيسة</p>
+            </div>
+
+            <!-- TABS TOGGLE -->
+            <div class="flex bg-slate-900 p-1 rounded-xl mb-6 border border-slate-700">
+                <button id="tabLoginBtn" onclick="switchTab('login')" 
+                    class="flex-1 py-2 text-sm font-semibold rounded-lg text-white bg-blue-600 transition duration-200">
+                    تسجيل الدخول
+                </button>
+                <button id="tabRegisterBtn" onclick="switchTab('register')" 
+                    class="flex-1 py-2 text-sm font-semibold rounded-lg text-slate-400 hover:text-white transition duration-200">
+                    حساب جديد (Register)
+                </button>
+            </div>
+
+            <!-- 🔑 LOGIN FORM -->
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">البريد الإلكتروني</label>
+                    <input type="email" id="loginEmail" required placeholder="admin@church.com"
+                        class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-white transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">كلمة السر</label>
+                    <input type="password" id="loginPassword" required placeholder="••••••••"
+                        class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-white transition">
+                </div>
+                <div id="loginError" class="hidden text-red-400 text-sm bg-red-500/10 p-3 rounded-lg text-center border border-red-500/20"></div>
+                <button type="submit" id="loginBtn"
+                    class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition duration-200 shadow-lg shadow-blue-600/30">
+                    دخول النظام <i class="fa-solid fa-arrow-left mr-1"></i>
+                </button>
+            </form>
+
+            <!-- 📝 REGISTER FORM -->
+            <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">الاسم بالكامل</label>
+                    <input type="text" id="regName" required placeholder="مينا عادل"
+                        class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-white transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">البريد الإلكتروني</label>
+                    <input type="email" id="regEmail" required placeholder="mena@church.com"
+                        class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-white transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">كلمة السر</label>
+                    <input type="password" id="regPassword" required placeholder="••••••••"
+                        class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-white transition">
+                </div>
+                <div id="registerMsg" class="hidden text-sm p-3 rounded-lg text-center"></div>
+                <button type="submit" id="registerBtn"
+                    class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl transition duration-200 shadow-lg shadow-emerald-600/30">
+                    إنشاء الحساب الان <i class="fa-solid fa-user-plus mr-1"></i>
+                </button>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- 📊 2️⃣ لوحة التحكم الرئيسية (DASHBOARD SCREEN) -->
+    <div id="dashboardScreen" class="hidden">
+        
+        <!-- Header -->
+        <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-40 shadow-md">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white text-xl">
+                        <i class="fa-solid fa-church"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-lg text-white">سجل الكنيسة الرقمي</h2>
+                        <span class="text-xs text-emerald-400 flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            السيرفر متصل ومربوط 100% 🟢
+                        </span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <button onclick="openReportsModal()" class="bg-purple-600 hover:bg-purple-500 text-white px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 shadow-lg shadow-purple-600/20">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span class="hidden sm:inline">التقارير</span>
+                    </button>
+
+                    <button onclick="openFamiliesListModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 shadow-lg shadow-indigo-600/20">
+                        <i class="fa-solid fa-house-user"></i>
+                        <span class="hidden sm:inline">سجل العائلات</span>
+                    </button>
+
+                    <button onclick="openAddFamilyModal()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 shadow-lg shadow-amber-600/20">
+                        <i class="fa-solid fa-house-chimney-window"></i>
+                        <span class="hidden sm:inline">إضافة عائلة</span>
+                    </button>
+
+                    <button onclick="openMemberModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 shadow-lg shadow-blue-600/20">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span class="hidden sm:inline">إضافة عضو</span>
+                    </button>
+
+                    <button onclick="openExcelModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 shadow-lg shadow-emerald-600/20">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span class="hidden sm:inline">رفع إكسيل</span>
+                    </button>
+
+                    <button onclick="handleLogout()" class="px-3 py-2 bg-slate-700 hover:bg-red-600/80 text-slate-200 hover:text-white rounded-xl text-sm transition" title="تسجيل الخروج">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+            <!-- 📈 الإحصائيات الأساسية -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center text-2xl">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-sm">إجمالي الشعب</p>
+                        <h3 id="statTotalMembers" class="text-2xl font-bold text-white">0</h3>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl flex items-center gap-4 cursor-pointer hover:border-emerald-500 transition" onclick="openFamiliesListModal()">
+                    <div class="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center text-2xl">
+                        <i class="fa-solid fa-house-chimney"></i>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-sm">عدد العائلات (اضغط للعرَض)</p>
+                        <h3 id="statTotalFamilies" class="text-2xl font-bold text-white">0</h3>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl flex items-center gap-4">
+                    <div class="w-12 h-12 bg-amber-500/10 text-amber-500 rounded-xl flex items-center justify-center text-2xl">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-sm">الأحياء</p>
+                        <h3 id="statAliveMembers" class="text-2xl font-bold text-white">0</h3>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl flex items-center gap-4">
+                    <div class="w-12 h-12 bg-purple-500/10 text-purple-400 rounded-xl flex items-center justify-center text-2xl">
+                        <i class="fa-solid fa-cross"></i>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-sm">المتنيحين</p>
+                        <h3 id="statDeceasedMembers" class="text-2xl font-bold text-white">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🔍 البحث والجدول -->
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-xl overflow-hidden">
+                
+                <div class="p-6 border-b border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-address-book text-blue-500"></i>
+                        سجل الأعضاء
+                    </h3>
+
+                    <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                        <select id="filterAgeStage" onchange="applyActiveSearch()" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-300 outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">كل المراحل (7 فئات)</option>
+                            <option value="primary_school">ابتدائي (6 - 11)</option>
+                            <option value="preparatory_school">إعدادي (12 - 14)</option>
+                            <option value="secondary_school">ثانوي (15 - 17)</option>
+                            <option value="university">جامعيين (18 - 22)</option>
+                            <option value="youth">شباب وخريجين (23 - 35)</option>
+                            <option value="adults">خدام وأولياء أمور (36 - 50)</option>
+                            <option value="elders">كبار السن والمسنين (+50)</option>
+                        </select>
+
+                        <select id="filterGender" onchange="applyActiveSearch()" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-300 outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">كل الأنواع</option>
+                            <option value="MALE">ذكر</option>
+                            <option value="FEMALE">أنثى</option>
+                        </select>
+
+                        <select id="filterStatus" onchange="applyActiveSearch()" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-300 outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">كل الحالات</option>
+                            <option value="ALIVE">حي</option>
+                            <option value="DECEASED">متنيح</option>
+                        </select>
+
+                        <div class="relative flex-1 sm:w-56">
+                            <input type="text" id="searchInput" oninput="handleSearchBackend()" placeholder="ابحث بالاسم أو التليفون..."
+                                class="w-full pr-10 pl-4 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white">
+                            <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
+                                <i class="fa-solid fa-search"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right text-slate-300 text-sm">
+                        <thead class="bg-slate-900/50 text-slate-400 uppercase text-xs border-b border-slate-700">
+                            <tr>
+                                <th class="py-4 px-6">الاسم</th>
+                                <th class="py-4 px-6">تاريخ الميلاد والسن</th>
+                                <th class="py-4 px-6">رقم التليفون</th>
+                                <th class="py-4 px-6">الرقم القومي</th>
+                                <th class="py-4 px-6">النوع</th>
+                                <th class="py-4 px-6">الحالة</th>
+                                <th class="py-4 px-6 text-center">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="membersTableBody" class="divide-y divide-slate-700">
+                            <tr>
+                                <td colspan="7" class="text-center py-8 text-slate-500">
+                                    جاري تحميل البيانات من Vercel...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- 🏠 3️⃣ MODAL: سجل العائلات -->
+    <div id="familiesListModal" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-4xl shadow-2xl max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-house-user"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white">سجل وقائمة العائلات المسجلة</h3>
+                        <p class="text-xs text-slate-400">مربوط مباشرة بـ <code class="bg-slate-900 px-2 py-0.5 rounded text-indigo-300">GET /api/families/getAllFamilies</code></p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button onclick="closeFamiliesListModal(); openAddFamilyModal();" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1">
+                        <i class="fa-solid fa-plus"></i> إضافة عائلة جديدة
+                    </button>
+                    <button onclick="closeFamiliesListModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto bg-slate-900/50 rounded-xl border border-slate-700">
+                <table class="w-full text-right text-slate-300 text-sm">
+                    <thead class="bg-slate-900 text-slate-400 uppercase text-xs border-b border-slate-700">
+                        <tr>
+                            <th class="py-3.5 px-5">اسم العائلة</th>
+                            <th class="py-3.5 px-5">العنوان / المكان</th>
+                            <th class="py-3.5 px-5">رقم التليفون</th>
+                            <th class="py-3.5 px-5">العضو المسئول (رب الأسرة)</th>
+                            <th class="py-3.5 px-5 text-center">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="familiesTableBody" class="divide-y divide-slate-800">
+                        <tr>
+                            <td colspan="5" class="text-center py-6 text-slate-500">جاري تحميل العائلات...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-end mt-6">
+                <button onclick="closeFamiliesListModal()" class="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📊 4️⃣ MODAL: شاشة التقارير -->
+    <div id="reportsModal" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-3xl shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white">تقرير الفئات والشرائح العمرية الـ 7</h3>
+                        <p class="text-xs text-slate-400">مربوط بـ <code class="bg-slate-900 px-2 py-0.5 rounded text-purple-300">GET /api/reports/age-categories</code></p>
+                    </div>
+                </div>
+                <button onclick="closeReportsModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 text-center">
+                    <p class="text-xs text-slate-400 mb-1">إجمالي الأحياء بالتقرير</p>
+                    <h4 id="repTotalAlive" class="text-xl font-bold text-emerald-400">0</h4>
+                </div>
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 text-center">
+                    <p class="text-xs text-slate-400 mb-1">نسبة الذكور</p>
+                    <h4 id="repMalePct" class="text-xl font-bold text-blue-400">0%</h4>
+                </div>
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 text-center">
+                    <p class="text-xs text-slate-400 mb-1">نسبة الإناث</p>
+                    <h4 id="repFemalePct" class="text-xl font-bold text-pink-400">0%</h4>
+                </div>
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 text-center">
+                    <p class="text-xs text-slate-400 mb-1">متوسط السن</p>
+                    <h4 id="repAvgAge" class="text-xl font-bold text-amber-400">0 سنة</h4>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/80 rounded-2xl p-6 border border-slate-700 space-y-4 mb-6">
+                <h4 class="font-bold text-white text-base flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-purple-400"></i>
+                    توزيع الشعب حسب الفئات الخدمية والدراسية الـ 7:
+                </h4>
+
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-slate-300">🎒 مرحلة ابتدائي (6 - 11 سنة)</span>
+                        <span id="cntPrimary" class="font-bold text-blue-400">0 عضو (0%)</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div id="barPrimary" class="bg-blue-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-slate-300">📚 مرحلة إعدادي (12 - 14 سنة)</span>
+                        <span id="cntPrep" class="font-bold text-cyan-400">0 عضو (0%)</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div id="barPrep" class="bg-cyan-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-slate-300">🏫 مرحلة ثانوي (15 - 17 سنة)</span>
+                        <span id="cntSec" class="font-bold text-emerald-400">0 عضو (0%)</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div id="barSec" class="bg-emerald-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-slate-300">🎓 مرحلة جامعيين (18 - 22 سنة)</span>
+                        <span id="cntUni" class="font-bold text-indigo-400">0 عضو (0%)</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div id="barUni" class="bg-indigo-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-slate-300">🧔 مرحلة شباب وخريجين (23 - 35 سنة)</span>
+                        <span id="cntYouth" class="font-bold text-amber-400">0 عضو (0%)</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div id="barYouth" class="bg-amber-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-slate-300">👨‍👩‍👧‍👦 مرحلة خدام وأولياء أمور (36 - 50 سنة)</span>
+                        <span id="cntAdults" class="font-bold text-purple-400">0 عضو (0%)</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div id="barAdults" class="bg-purple-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-slate-300">👴 مرحلة كبار السن والمسنين (+50 سنة)</span>
+                        <span id="cntElders" class="font-bold text-rose-400">0 عضو (0%)</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div id="barElders" class="bg-rose-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="flex justify-end">
+                <button onclick="closeReportsModal()" class="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold">إغلاق التقرير</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ➕/✏️ 5️⃣ MODAL: إضافة / تعديل عضو (الخطوة 1: يتم إنشاء الأعضاء أولاً بأمان!) -->
+    <div id="memberModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
+                <h3 id="modalTitle" class="text-xl font-bold text-white">إضافة عضو جديد</h3>
+                <button onclick="closeMemberModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="memberForm" onsubmit="handleSaveMember(event)" class="space-y-4">
+                <input type="hidden" id="memberId">
+
+                <div>
+                    <label class="block text-sm text-slate-300 mb-1">الاسم بالكامل *</label>
+                    <input type="text" id="mName" required placeholder="مثال: بطرس مرقس" class="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-slate-300 mb-1">تاريخ الميلاد *</label>
+                        <input type="date" id="mDob" required class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-300 mb-1">رقم التليفون</label>
+                        <input type="text" id="mPhone" placeholder="01200000000" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm text-slate-300 mb-1">الرقم القومي (14 رقم)</label>
+                    <input type="text" id="mNationalId" maxlength="14" placeholder="29901010000000" class="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none font-mono">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-slate-300 mb-1">النوع *</label>
+                        <select id="mGender" required class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none">
+                            <option value="MALE">ذكر</option>
+                            <option value="FEMALE">أنثى</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-300 mb-1">الحالة *</label>
+                        <select id="mStatus" required class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none">
+                            <option value="ALIVE">حي</option>
+                            <option value="DECEASED">متنيح</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 💡 خانة العائلة اختياري عند إضافة أول الأعضاء -->
+                <div>
+                    <label class="block text-sm text-slate-300 mb-1">اختر العائلة <span class="text-slate-400 text-xs">(اختياري إن لم تكن أضفت عائلة بعد)</span></label>
+                    <select id="mFamilySelect" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none">
+                        <option value="">-- بدون عائلة حالياً (يمكن اختيارها بعد إنشاء العائلة) --</option>
+                    </select>
+                </div>
+
+                <div id="modalError" class="hidden text-red-400 text-sm bg-red-500/10 p-3 rounded-lg text-center border border-red-500/20"></div>
+
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" id="saveMemberBtn" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl transition">حفظ العضو</button>
+                    <button type="button" onclick="closeMemberModal()" class="px-5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 🏘️ 6️⃣ MODAL: إضافة عائلة جديدة (الخطوة 2: اختيار رب أسرة من الأعضاء المسجلين بالداتابيز) -->
+    <div id="addFamilyModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-house-chimney-window text-amber-500"></i>
+                    إضافة عائلة جديدة
+                </h3>
+                <button onclick="closeAddFamilyModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="addFamilyForm" onsubmit="handleAddFamily(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm text-slate-300 mb-1">اسم العائلة *</label>
+                    <input type="text" id="famName" required placeholder="مثال: عائلة القديس يوسف" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-slate-300 mb-1">العنوان / المكان *</label>
+                        <input type="text" id="famPlace" required placeholder="مثال: شبرا / قنا" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-300 mb-1">رقم تليفون العائلة *</label>
+                        <input type="text" id="famPhone" required placeholder="01200000000" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none">
+                    </div>
+                </div>
+
+                <!-- 🎯 اختيار رب الأسرة من الأعضاء المضافين بالفعل في الخطوة 1 -->
+                <div>
+                    <label class="block text-sm text-slate-300 mb-1">اختر العضو المسئول (رب الأسرة) *</label>
+                    <select id="famHeadSelect" required class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none">
+                        <option value="">-- اختر عضو مسئول من الأعضاء المسجلين --</option>
+                    </select>
+                </div>
+
+                <div id="famError" class="hidden text-red-400 text-sm bg-red-500/10 p-3 rounded-lg text-center border border-red-500/20"></div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="submit" id="famBtn" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-bold py-2.5 rounded-xl transition">حفظ العائلة</button>
+                    <button type="button" onclick="closeAddFamilyModal()" class="px-5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 📤 7️⃣ MODAL: رفع إكسيل -->
+    <div id="excelModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-file-excel text-emerald-500"></i>
+                    رفع شيت إكسيل (Upload Excel)
+                </h3>
+                <button onclick="closeExcelModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="excelForm" onsubmit="handleExcelUpload(event)" class="space-y-4">
+                <div class="border-2 border-dashed border-slate-600 hover:border-emerald-500 p-6 rounded-2xl text-center cursor-pointer bg-slate-900/50 transition">
+                    <i class="fa-solid fa-cloud-arrow-up text-4xl text-emerald-500 mb-3"></i>
+                    <p class="text-slate-300 text-sm">اختر ملف الإكسيل (`.xlsx` أو `.xls`)</p>
+                    <input type="file" id="excelFile" accept=".xlsx, .xls" required class="mt-3 block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500">
+                </div>
+
+                <div id="excelMsg" class="hidden text-sm p-3 rounded-lg text-center"></div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="submit" id="excelBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl transition">رفع الملف الآن</button>
+                    <button type="button" onclick="closeExcelModal()" class="px-5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 📜 JAVASCRIPT LOGIC -->
+    <script>
+        let authToken = localStorage.getItem('jwt_token') || null;
+        let allMasterMembers = [];
+        let allMasterFamilies = [];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (authToken && authToken !== "undefined" && authToken !== "null") {
+                showDashboard();
+            } else {
+                showAuth();
+            }
+        });
+
+        function switchTab(type) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const tabLoginBtn = document.getElementById('tabLoginBtn');
+            const tabRegisterBtn = document.getElementById('tabRegisterBtn');
+
+            if (type === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                tabLoginBtn.className = "flex-1 py-2 text-sm font-semibold rounded-lg text-white bg-blue-600 transition duration-200";
+                tabRegisterBtn.className = "flex-1 py-2 text-sm font-semibold rounded-lg text-slate-400 hover:text-white transition duration-200";
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                tabLoginBtn.className = "flex-1 py-2 text-sm font-semibold rounded-lg text-slate-400 hover:text-white transition duration-200";
+                tabRegisterBtn.className = "flex-1 py-2 text-sm font-semibold rounded-lg text-white bg-emerald-600 transition duration-200";
+            }
+        }
+
+        function showAuth() {
+            document.getElementById('authScreen').classList.remove('hidden');
+            document.getElementById('dashboardScreen').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('dashboardScreen').classList.remove('hidden');
+            fetchMembers();
+            fetchFamilies();
+        }
+
+        function calculateAge(dobString) {
+            if (!dobString) return 0;
+            const birthDate = new Date(dobString);
+            if (isNaN(birthDate.getTime())) return 0;
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return age >= 0 ? age : 0;
+        }
+
+        function getAgeStageCategory(age) {
+            if (age >= 6 && age <= 11) return 'primary_school';
+            if (age >= 12 && age <= 14) return 'preparatory_school';
+            if (age >= 15 && age <= 17) return 'secondary_school';
+            if (age >= 18 && age <= 22) return 'university';
+            if (age >= 23 && age <= 35) return 'youth';
+            if (age >= 36 && age <= 50) return 'adults';
+            if (age > 50) return 'elders';
+            return 'other';
+        }
+
+        function getAgeStageBadge(age) {
+            const cat = getAgeStageCategory(age);
+            if (cat === 'primary_school') return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-400">ابتدائي</span>`;
+            if (cat === 'preparatory_school') return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/20 text-cyan-400">إعدادي</span>`;
+            if (cat === 'secondary_school') return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400">ثانوي</span>`;
+            if (cat === 'university') return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-400">جامعيين</span>`;
+            if (cat === 'youth') return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400">شباب</span>`;
+            if (cat === 'adults') return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-400">خدام/كبار</span>`;
+            if (cat === 'elders') return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-400">كبار السن</span>`;
+            return `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-500/20 text-slate-400">طفل</span>`;
+        }
+
+        function findJWT(obj) {
+            if (!obj) return null;
+            if (typeof obj === 'string') {
+                if (obj.startsWith('eyJ') || (obj.split('.').length === 3 && obj.length > 25)) return obj;
+                return null;
+            }
+            if (typeof obj === 'object') {
+                for (let key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        let found = findJWT(obj[key]);
+                        if (found) return found;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function extractToken(data) { return findJWT(data); }
+
+        function extractMembersArray(data) {
+            if (!data) return [];
+            if (Array.isArray(data)) return data;
+            if (Array.isArray(data.data)) return data.data;
+            if (data.data && Array.isArray(data.data.members)) return data.data.members;
+            if (Array.isArray(data.members)) return data.members;
+            if (Array.isArray(data.result)) return data.result;
+            return [];
+        }
+
+        function extractFamiliesArray(data) {
+            if (!data) return [];
+            if (Array.isArray(data)) return data;
+            if (Array.isArray(data.data)) return data.data;
+            if (data.data && Array.isArray(data.data.families)) return data.data.families;
+            if (Array.isArray(data.families)) return data.families;
+            if (Array.isArray(data.result)) return data.result;
+            return [];
+        }
+
+        // 🔑 Login
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+            const loginBtn = document.getElementById('loginBtn');
+
+            errorDiv.classList.add('hidden');
+            loginBtn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, user_email: email, password, user_password: password })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    const token = extractToken(data);
+                    if (token) {
+                        authToken = token;
+                        localStorage.setItem('jwt_token', authToken);
+                    }
+                    showDashboard();
+                } else {
+                    throw new Error(data.message || 'بيانات الدخول غير صحيحة');
+                }
+            } catch (err) {
+                errorDiv.innerText = err.message;
+                errorDiv.classList.remove('hidden');
+            } finally {
+                loginBtn.disabled = false;
+            }
+        }
+
+        // 📝 Register
+        async function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const msgDiv = document.getElementById('registerMsg');
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, username: name, user_name: name, email, user_email: email, password, user_password: password, church_id: 1 })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    const token = extractToken(data);
+                    if (token) {
+                        authToken = token;
+                        localStorage.setItem('jwt_token', authToken);
+                        showDashboard();
+                    } else {
+                        document.getElementById('loginEmail').value = email;
+                        document.getElementById('loginPassword').value = password;
+                        switchTab('login');
+                        await handleLogin(e);
+                    }
+                } else {
+                    throw new Error(data.message || 'فشل إنشاء الحساب');
+                }
+            } catch (err) {
+                msgDiv.innerText = err.message;
+                msgDiv.className = "text-red-400 bg-red-500/10 p-3 rounded-lg text-center border border-red-500/20";
+                msgDiv.classList.remove('hidden');
+            }
+        }
+
+        // 🚪 Logout
+        function handleLogout() {
+            localStorage.removeItem('jwt_token');
+            authToken = null;
+            showAuth();
+        }
+
+        // 🏘️ Fetch Families
+        async function fetchFamilies() {
+            try {
+                const headers = {};
+                if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+                let res = await fetch(`${API_BASE_URL}/api/families/getAllFamilies`, { headers });
+                if (!res.ok) {
+                    res = await fetch(`${API_BASE_URL}/api/families`, { headers });
+                }
+
+                const data = await res.json();
+                const families = extractFamiliesArray(data);
+                allMasterFamilies = families;
+
+                document.getElementById('statTotalFamilies').innerText = families.length;
+
+                const select = document.getElementById('mFamilySelect');
+                if (families.length > 0) {
+                    select.innerHTML = `<option value="">-- بدون عائلة حالياً (يمكن اختيارها لاحقاً) --</option>` + 
+                        families.map(f => `<option value="${f.id}">${f.name || f.family_name}</option>`).join('');
+                } else {
+                    select.innerHTML = `<option value="">-- بدون عائلة حالياً (يمكن اختيارها بعد إنشاء العائلة) --</option>`;
+                }
+
+                renderFamiliesTable();
+            } catch (err) {
+                document.getElementById('mFamilySelect').innerHTML = `<option value="">-- بدون عائلة حالياً --</option>`;
+            }
+        }
+
+        // 🏠 رسم جدول العائلات
+        function renderFamiliesTable() {
+            const tbody = document.getElementById('familiesTableBody');
+            if (!tbody) return;
+
+            if (allMasterFamilies.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-500">لا توجد عائلات مسجلة حالياً. اضغط على "+ إضافة عائلة جديدة" بالأعلى لإضافة أول عائلة!</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = allMasterFamilies.map(f => {
+                const headMember = allMasterMembers.find(m => m.id === f.head_id);
+                const headName = headMember ? (headMember.name || headMember.user_name) : (f.head_name || f.head_user_name || f.head || 'غير محدد');
+
+                return `
+                <tr class="hover:bg-slate-800 transition">
+                    <td class="py-3.5 px-5 font-bold text-white">${f.name || f.family_name || 'بدون اسم'}</td>
+                    <td class="py-3.5 px-5">${f.place || '-'}</td>
+                    <td class="py-3.5 px-5" dir="ltr">${f.phone_number || '-'}</td>
+                    <td class="py-3.5 px-5 text-emerald-400 font-semibold">${headName}</td>
+                    <td class="py-3.5 px-5 text-center">
+                        <button onclick="deleteFamily(${f.id})" class="p-1.5 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition" title="حذف العائلة">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function openFamiliesListModal() {
+            fetchFamilies();
+            document.getElementById('familiesListModal').classList.remove('hidden');
+        }
+
+        function closeFamiliesListModal() {
+            document.getElementById('familiesListModal').classList.add('hidden');
+        }
+
+        // 🗑️ Delete Family
+        async function deleteFamily(id) {
+            if (!confirm('هل أنت تأكد من رغبتك في حذف هذه العائلة نهائياً؟')) return;
+
+            try {
+                const headers = {};
+                if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+                const res = await fetch(`${API_BASE_URL}/api/families/deleteFamily/${id}`, {
+                    method: 'DELETE',
+                    headers: headers
+                });
+
+                if (res.ok) {
+                    fetchFamilies();
+                } else {
+                    const data = await res.json();
+                    alert(data.message || 'فشل حذف العائلة');
+                }
+            } catch (err) {
+                alert('حدث خطأ أثناء الاتصال بالسيرفر');
+            }
+        }
+
+        // 🏘️ Open Modal for Adding Family (الخطوة 2: يطلب اختيار عضو موجود بالداتابيز)
+        function openAddFamilyModal() {
+            document.getElementById('addFamilyForm').reset();
+            document.getElementById('famError').classList.add('hidden');
+
+            const headSelect = document.getElementById('famHeadSelect');
+            if (allMasterMembers.length > 0) {
+                headSelect.innerHTML = `<option value="">-- اختر عضو مسئول (رب الأسرة) --</option>` + 
+                    allMasterMembers.map(m => `<option value="${m.id}">${m.name || m.user_name}</option>`).join('');
+            } else {
+                headSelect.innerHTML = `<option value="">-- يرجى إضافة عضو واحد على الأقل في الكنيسة أولاً! --</option>`;
+            }
+
+            document.getElementById('addFamilyModal').classList.remove('hidden');
+        }
+
+        function closeAddFamilyModal() {
+            document.getElementById('addFamilyModal').classList.add('hidden');
+        }
+
+        // 💾 Add Family (إرسال head_id لعضو موجود لمنع خطأ Foreign Key)
+        async function handleAddFamily(e) {
+            e.preventDefault();
+            const name = document.getElementById('famName').value.trim();
+            const place = document.getElementById('famPlace').value.trim();
+            const phone = document.getElementById('famPhone').value.trim();
+            const selectedHeadId = document.getElementById('famHeadSelect').value;
+            const errDiv = document.getElementById('famError');
+            const btn = document.getElementById('famBtn');
+
+            errDiv.classList.add('hidden');
+
+            if (!selectedHeadId) {
+                errDiv.innerText = "تنبيه: يجب إضافة عضو واحد على الأقل أولاً في الكنيسة، واختياره كـ رب أسرة لربط العائلة به بنجاح!";
+                errDiv.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> جاري الحفظ...`;
+
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+                const payload = {
+                    name: name,
+                    family_name: name,
+                    place: place,
+                    phone_number: phone,
+                    head_id: parseInt(selectedHeadId),
+                    church_id: 1
+                };
+
+                const res = await fetch(`${API_BASE_URL}/api/families/addFamily`, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    closeAddFamilyModal();
+                    await fetchFamilies();
+                    alert('تم إنشاء وإضافة العائلة بنجاح!');
+                } else {
+                    throw new Error(data.message || (Array.isArray(data.errors) ? data.errors[0].message : 'فشل إضافة العائلة'));
+                }
+            } catch (err) {
+                errDiv.innerText = err.message;
+                errDiv.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "حفظ العائلة";
+            }
+        }
+
+        // 📥 Fetch Master Members List
+        async function fetchMembers() {
+            const tbody = document.getElementById('membersTableBody');
+
+            try {
+                const url = `${API_BASE_URL}/api/members`;
+                const headers = {};
+                if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+                const res = await fetch(url, { headers });
+                const data = await res.json();
+
+                if (res.status === 401) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-amber-400">يلزم تسجيل الدخول مجدداً لتحديث التوكن. <button onclick="handleLogout()" class="underline font-bold text-white">تسجيل الدخول الآن</button></td></tr>`;
+                    return;
+                }
+
+                allMasterMembers = extractMembersArray(data);
+                applyActiveSearch();
+                renderFamiliesTable();
+
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-red-400">حدث خطأ أثناء تحميل البيانات من السيرفر.</td></tr>`;
+            }
+        }
+
+        // 🔍 Backend Search Handler
+        let searchDebounce;
+        async function handleSearchBackend() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                fetchMembers();
+                return;
+            }
+
+            clearTimeout(searchDebounce);
+            searchDebounce = setTimeout(async () => {
+                try {
+                    const headers = {};
+                    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+                    const res = await fetch(`${API_BASE_URL}/api/members/search?search=${encodeURIComponent(query)}&q=${encodeURIComponent(query)}`, { headers });
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        allMasterMembers = extractMembersArray(data);
+                        applyActiveSearch();
+                    }
+                } catch (err) {
+                    applyActiveSearch();
+                }
+            }, 300);
+        }
+
+        // ⚡⚡⚡ دالة البحث النشط
+        function applyActiveSearch() {
+            const tbody = document.getElementById('membersTableBody');
+            const textQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+            const ageStageVal = document.getElementById('filterAgeStage').value;
+            const genderVal = document.getElementById('filterGender').value;
+            const statusVal = document.getElementById('filterStatus').value;
+
+            let filtered = allMasterMembers.filter(m => {
+                const age = calculateAge(m.date_of_birth);
+                const stageCat = getAgeStageCategory(age);
+
+                const nameMatch = (m.name || m.user_name || '').toLowerCase().includes(textQuery);
+                const phoneMatch = (m.phone_number || '').includes(textQuery);
+                const nationalIdMatch = (m.national_id || '').includes(textQuery);
+                const matchesText = !textQuery || nameMatch || phoneMatch || nationalIdMatch;
+
+                const matchesAgeStage = !ageStageVal || stageCat === ageStageVal;
+                const matchesGender = !genderVal || (m.gender && m.gender.toUpperCase() === genderVal.toUpperCase());
+                const matchesStatus = !statusVal || (m.status && m.status.toUpperCase() === statusVal.toUpperCase());
+
+                return matchesText && matchesAgeStage && matchesGender && matchesStatus;
+            });
+
+            document.getElementById('statTotalMembers').innerText = filtered.length;
+            document.getElementById('statAliveMembers').innerText = filtered.filter(m => m.status === 'ALIVE').length;
+            document.getElementById('statDeceasedMembers').innerText = filtered.filter(m => m.status === 'DECEASED').length;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-500">لا يوجد أعضاء يطابقون شروط البحث والتصفية المحددة!</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(m => {
+                const age = calculateAge(m.date_of_birth);
+                return `
+                <tr class="hover:bg-slate-700/50 transition">
+                    <td class="py-4 px-6 font-semibold text-white">${m.name || m.user_name || 'بدون اسم'}</td>
+                    <td class="py-4 px-6">
+                        <div class="flex items-center gap-2">
+                            <span>${m.date_of_birth ? new Date(m.date_of_birth).toLocaleDateString('ar-EG') : '-'}</span>
+                            <span class="text-slate-400 font-mono text-xs">(${age} سنة)</span>
+                            ${getAgeStageBadge(age)}
+                        </div>
+                    </td>
+                    <td class="py-4 px-6" dir="ltr">${m.phone_number || '-'}</td>
+                    <td class="py-4 px-6 font-mono text-slate-400">${m.national_id || '-'}</td>
+                    <td class="py-4 px-6">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${m.gender === 'MALE' ? 'bg-blue-500/10 text-blue-400' : 'bg-pink-500/10 text-pink-400'}">
+                            ${m.gender === 'MALE' ? 'ذكر' : 'أنثى'}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${m.status === 'ALIVE' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-500/10 text-slate-400'}">
+                            ${m.status === 'ALIVE' ? 'حي' : 'متنيح'}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-center">
+                        <div class="flex justify-center gap-2">
+                            <button onclick="editMember(${m.id})" class="p-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg transition" title="تعديل">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteMember(${m.id})" class="p-2 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition" title="حذف">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        // 📊📊📊 فتح تقارير الفئات العمرية
+        async function openReportsModal() {
+            document.getElementById('reportsModal').classList.remove('hidden');
+
+            let repData = null;
+
+            try {
+                const headers = {};
+                if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+                const res = await fetch(`${API_BASE_URL}/api/reports/age-categories`, { headers });
+                const json = await res.json();
+                if (res.ok && (json.data || json)) {
+                    repData = json.data || json;
+                }
+            } catch (err) {
+                console.warn("⚠️ API Report Fallback");
+            }
+
+            const totalAlive = repData ? (repData.total_alive_members || allMasterMembers.filter(m=>m.status==='ALIVE').length) : allMasterMembers.filter(m=>m.status==='ALIVE').length;
+            const total = totalAlive || 1;
+
+            const primaryCount = repData ? parseInt(repData.primary_school || 0) : allMasterMembers.filter(m => { const a = calculateAge(m.date_of_birth); return a >= 6 && a <= 11; }).length;
+            const prepCount = repData ? parseInt(repData.preparatory_school || 0) : allMasterMembers.filter(m => { const a = calculateAge(m.date_of_birth); return a >= 12 && a <= 14; }).length;
+            const secCount = repData ? parseInt(repData.secondary_school || 0) : allMasterMembers.filter(m => { const a = calculateAge(m.date_of_birth); return a >= 15 && a <= 17; }).length;
+            const uniCount = repData ? parseInt(repData.university || 0) : allMasterMembers.filter(m => { const a = calculateAge(m.date_of_birth); return a >= 18 && a <= 22; }).length;
+            const youthCount = repData ? parseInt(repData.youth || 0) : allMasterMembers.filter(m => { const a = calculateAge(m.date_of_birth); return a >= 23 && a <= 35; }).length;
+            const adultCount = repData ? parseInt(repData.adults || 0) : allMasterMembers.filter(m => { const a = calculateAge(m.date_of_birth); return a >= 36 && a <= 50; }).length;
+            const elderCount = repData ? parseInt(repData.elders || 0) : allMasterMembers.filter(m => calculateAge(m.date_of_birth) > 50).length;
+
+            const males = allMasterMembers.filter(m => m.gender === 'MALE').length;
+            const females = allMasterMembers.filter(m => m.gender === 'FEMALE').length;
+            const ages = allMasterMembers.map(m => calculateAge(m.date_of_birth));
+            const avgAge = Math.round(ages.reduce((a, b) => a + b, 0) / (allMasterMembers.length || 1));
+
+            document.getElementById('repTotalAlive').innerText = totalAlive;
+            document.getElementById('repAvgAge').innerText = `${avgAge} سنة`;
+            document.getElementById('repMalePct').innerText = `${Math.round((males / (allMasterMembers.length || 1)) * 100)}%`;
+            document.getElementById('repFemalePct').innerText = `${Math.round((females / (allMasterMembers.length || 1)) * 100)}%`;
+
+            const updateBar = (cntId, barId, count) => {
+                const pct = Math.round((count / total) * 100);
+                document.getElementById(cntId).innerText = `${count} عضو (${pct}%)`;
+                document.getElementById(barId).style.width = `${pct}%`;
+            };
+
+            updateBar('cntPrimary', 'barPrimary', primaryCount);
+            updateBar('cntPrep', 'barPrep', prepCount);
+            updateBar('cntSec', 'barSec', secCount);
+            updateBar('cntUni', 'barUni', uniCount);
+            updateBar('cntYouth', 'barYouth', youthCount);
+            updateBar('cntAdults', 'barAdults', adultCount);
+            updateBar('cntElders', 'barElders', elderCount);
+        }
+
+        function closeReportsModal() {
+            document.getElementById('reportsModal').classList.add('hidden');
+        }
+
+        // ➕ Open Modal for ADD (الخطوة 1: إضافة عضو أولاً كـ family_id اختياري/null)
+        function openMemberModal() {
+            document.getElementById('memberId').value = '';
+            document.getElementById('modalTitle').innerText = 'إضافة عضو جديد';
+            document.getElementById('memberForm').reset();
+            document.getElementById('modalError').classList.add('hidden');
+            fetchFamilies();
+            document.getElementById('memberModal').classList.remove('hidden');
+        }
+
+        // ✏️ Open Modal for EDIT
+        function editMember(id) {
+            const m = allMasterMembers.find(item => item.id === id);
+            if (!m) return;
+
+            document.getElementById('memberId').value = m.id;
+            document.getElementById('modalTitle').innerText = 'تعديل بيانات العضو';
+            document.getElementById('mName').value = m.name || '';
+            document.getElementById('mDob').value = m.date_of_birth ? m.date_of_birth.split('T')[0] : '';
+            document.getElementById('mPhone').value = m.phone_number || '';
+            document.getElementById('mNationalId').value = m.national_id || '';
+            document.getElementById('mGender').value = m.gender || 'MALE';
+            document.getElementById('mStatus').value = m.status || 'ALIVE';
+            document.getElementById('mFamilySelect').value = m.family_id || '';
+
+            document.getElementById('modalError').classList.add('hidden');
+            document.getElementById('memberModal').classList.remove('hidden');
+        }
+
+        function closeMemberModal() {
+            document.getElementById('memberModal').classList.add('hidden');
+        }
+
+        // 💾 Save Member (إمكانية إرسال family_id كـ null بسلام لو مفيش عائلات لسه!)
+        async function handleSaveMember(e) {
+            e.preventDefault();
+            const id = document.getElementById('memberId').value;
+            const saveBtn = document.getElementById('saveMemberBtn');
+
+            const nationalIdVal = document.getElementById('mNationalId').value.trim();
+            const phoneVal = document.getElementById('mPhone').value.trim();
+            const newStatus = document.getElementById('mStatus').value;
+            const selectedFamId = document.getElementById('mFamilySelect').value;
+
+            const modalError = document.getElementById('modalError');
+            modalError.classList.add('hidden');
+
+            const payload = {
+                name: document.getElementById('mName').value.trim(),
+                date_of_birth: document.getElementById('mDob').value,
+                phone_number: phoneVal ? phoneVal : null,
+                national_id: nationalIdVal ? nationalIdVal : null,
+                gender: document.getElementById('mGender').value,
+                status: newStatus,
+                family_id: selectedFamId ? parseInt(selectedFamId) : null,
+                church_id: 1
+            };
+
+            saveBtn.disabled = true;
+
+            try {
+                if (newStatus === 'DECEASED') {
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+                    fetch(`${API_BASE_URL}/api/members/events/death`, {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify({ member_id: id, memberId: id })
+                    }).catch(() => {});
+                }
+
+                const url = id ? `${API_BASE_URL}/api/members/${id}` : `${API_BASE_URL}/api/members`;
+                const method = id ? 'PUT' : 'POST';
+
+                const headers = { 'Content-Type': 'application/json' };
+                if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: headers,
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    closeMemberModal();
+                    fetchMembers();
+                } else {
+                    throw new Error(data.message || (Array.isArray(data.errors) ? data.errors[0].message : 'فشل حفظ البيانات'));
+                }
+            } catch (err) {
+                modalError.innerText = err.message;
+                modalError.classList.remove('hidden');
+            } finally {
+                saveBtn.disabled = false;
+            }
+        }
+
+        // 🗑️ Delete Member
+        async function deleteMember(id) {
+            if (!confirm('هل أنت تأكد من رغبتك في حذف هذا العضو نهائياً؟')) return;
+
+            try {
+                const headers = {};
+                if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+                const res = await fetch(`${API_BASE_URL}/api/members/${id}`, {
+                    method: 'DELETE',
+                    headers: headers
+                });
+
+                if (res.ok) {
+                    fetchMembers();
+                } else {
+                    const data = await res.json();
+                    alert(data.message || 'فشل حذف العضو من قاعدة البيانات');
+                }
+            } catch (err) {
+                alert('حدث خطأ أثناء الاتصال بالسيرفر');
+            }
+        }
+
+        // 📤 Excel Modal Controls
+        function openExcelModal() {
+            document.getElementById('excelForm').reset();
+            document.getElementById('excelMsg').classList.add('hidden');
+            document.getElementById('excelModal').classList.remove('hidden');
+        }
+
+        function closeExcelModal() {
+            document.getElementById('excelModal').classList.add('hidden');
+        }
+
+        async function handleExcelUpload(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('excelFile');
+            const msgDiv = document.getElementById('excelMsg');
+            const btn = document.getElementById('excelBtn');
+
+            if (!fileInput.files[0]) return;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> جاري الرفع...`;
+
+            try {
+                const headers = {};
+                if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+                const res = await fetch(`${API_BASE_URL}/api/members/upload-excel`, {
+                    method: 'POST',
+                    headers: headers,
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    msgDiv.innerText = "تم رفع وقراءة شيت الإكسيل بنجاح!";
+                    msgDiv.className = "text-emerald-400 bg-emerald-500/10 p-3 rounded-lg text-center border border-emerald-500/20";
+                    msgDiv.classList.remove('hidden');
+                    setTimeout(() => {
+                        closeExcelModal();
+                        fetchMembers();
+                    }, 1200);
+                } else {
+                    throw new Error(data.message || 'فشل رفع شيت الإكسيل');
+                }
+            } catch (err) {
+                msgDiv.innerText = err.message;
+                msgDiv.className = "text-red-400 bg-red-500/10 p-3 rounded-lg text-center border border-red-500/20";
+                msgDiv.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "رفع الملف الآن";
+            }
+        }
+    </script>
+</body>
+</html>

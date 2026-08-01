@@ -11,10 +11,14 @@ router.post('/register', validate(registerSchema),authController.register);
 
 router.post('/login' , authController.login);
 
-// router.get('/getProfile' , authMiddleware , authController.getProfile);
+
+ router.delete('/logout', authMiddleware , authController.logout);
+
+
+
+ // router.get('/getProfile' , authMiddleware , authController.getProfile);
 // router.put('/updateUser', authMiddleware , authController.updateUser);
 // router.put('/changePassword' , authMiddleware , authController.changePassword);
- router.delete('/logout', authMiddleware , authController.logout);
 
 export default router ;
 

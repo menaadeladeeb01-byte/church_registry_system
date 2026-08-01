@@ -4,7 +4,7 @@ import AppError from '../utils/appError.js';
 const createNewFamily = async (familyData) => {
     const { name, place, phone_number, head_id ,  church_id } = familyData;
 
-    if (!name || !place || !phone_number || !church_id ) {
+    if (!name || !place || !phone_number ||!head_id|| !church_id ) {
         throw new AppError('All fields (name, place, phone_number , head_id, church_id) are required!', 400);
     }
 
