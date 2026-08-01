@@ -44,6 +44,10 @@ export const parseExcelService = (fileBuffer) => {
 
         const rawDob = row['تاريخ الميلاد'] || row['Date of Birth'] || row['date_of_birth'];
 
+        const rawFamilyId = row['رقم العائلة'] || row['Family ID'] || row['family_id'];
+        const parsedFamilyId = rawFamilyId ? parseInt(rawFamilyId) : null;
+        const familyId = (!isNaN(parsedFamilyId) && parsedFamilyId > 0) ? parsedFamilyId : null;
+
         return {
             name: name.toString().trim(),
             dateOfBirth: parseExcelDate(rawDob),
@@ -51,7 +55,7 @@ export const parseExcelService = (fileBuffer) => {
             nationalId: (row['الرقم القومي'] || row['National ID'] || row['national_id'] || '').toString().trim() || null,
             gender: (row['النوع'] || row['Gender'] || 'MALE').toString().toUpperCase().trim(),
             status: (row['الحالة'] || row['Status'] || 'ALIVE').toString().toUpperCase().trim(),
-            familyId: parseInt(row['رقم العائلة'] || row['Family ID'] || row['family_id'])
+            familyId: familyId 
         };
     });
 };
