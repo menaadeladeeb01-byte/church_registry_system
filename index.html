@@ -223,7 +223,7 @@
                         </select>
 
                         <div class="relative flex-1 sm:w-56">
-                            <input type="text" id="searchInput" oninput="handleSearchBackend()" placeholder="ابحث بالاسم أو التليفون..."
+                            <input type="text" id="searchInput" oninput="applyActiveSearch()" placeholder="ابحث بالاسم، التليفون، أو الرقم القومي..."
                                 class="w-full pr-10 pl-4 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white">
                             <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400">
                                 <i class="fa-solid fa-search"></i>
@@ -427,7 +427,7 @@
         </div>
     </div>
 
-    <!-- ➕/✏️ 5️⃣ MODAL: إضافة / تعديل عضو (الخطوة 1: يتم إنشاء الأعضاء أولاً بأمان!) -->
+    <!-- ➕/✏️ 5️⃣ MODAL: إضافة / تعديل عضو -->
     <div id="memberModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
@@ -476,11 +476,10 @@
                     </div>
                 </div>
 
-                <!-- 💡 خانة العائلة اختياري عند إضافة أول الأعضاء -->
                 <div>
-                    <label class="block text-sm text-slate-300 mb-1">اختر العائلة <span class="text-slate-400 text-xs">(اختياري إن لم تكن أضفت عائلة بعد)</span></label>
+                    <label class="block text-sm text-slate-300 mb-1">اختر العائلة <span class="text-slate-400 text-xs">(اختياري)</span></label>
                     <select id="mFamilySelect" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none">
-                        <option value="">-- بدون عائلة حالياً (يمكن اختيارها بعد إنشاء العائلة) --</option>
+                        <option value="">-- بدون عائلة حالياً --</option>
                     </select>
                 </div>
 
@@ -494,7 +493,7 @@
         </div>
     </div>
 
-    <!-- 🏘️ 6️⃣ MODAL: إضافة عائلة جديدة (الخطوة 2: اختيار رب أسرة من الأعضاء المسجلين بالداتابيز) -->
+    <!-- 🏘️ 6️⃣ MODAL: إضافة عائلة جديدة -->
     <div id="addFamilyModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
@@ -522,7 +521,6 @@
                     </div>
                 </div>
 
-                <!-- 🎯 اختيار رب الأسرة من الأعضاء المضافين بالفعل في الخطوة 1 -->
                 <div>
                     <label class="block text-sm text-slate-300 mb-1">اختر العضو المسئول (رب الأسرة) *</label>
                     <select id="famHeadSelect" required class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white outline-none">
@@ -688,6 +686,29 @@
             return [];
         }
 
+        // 🧠 دالة ذكية لتحديد النوع الحقيقي من الرقم القومي المصري (الخانة الـ 13)
+  // 🧠 دالة ذكية مُعدلة لتنظيف الرقم القومي واستخراج النوع بدقة تامة
+        function getTrueGender(m) {
+            const rawG = String(m.gender || '').toUpperCase();
+            if (rawG.startsWith('F') || rawG.includes('أنثى') || rawG.includes('انثى')) {
+                return 'FEMALE';
+            }
+            if (rawG.startsWith('M') || rawG.includes('ذكر')) {
+                return 'MALE';
+            }
+
+            // تنظيف الرقم القومي من علامة السالب (-) أو أي رموز وحفظ الأرقام فقط
+            const cleanId = String(m.national_id || '').replace(/\D/g, '');
+            
+            if (cleanId.length === 14) {
+                const genderDigit = parseInt(cleanId.charAt(12), 10); // الخانة الـ 13 (قبل الأخيرة)
+                if (!isNaN(genderDigit)) {
+                    return (genderDigit % 2 === 0) ? 'FEMALE' : 'MALE';
+                }
+            }
+            return 'MALE';
+        }
+
         // 🔑 Login
         async function handleLogin(e) {
             e.preventDefault();
@@ -790,10 +811,10 @@
 
                 const select = document.getElementById('mFamilySelect');
                 if (families.length > 0) {
-                    select.innerHTML = `<option value="">-- بدون عائلة حالياً (يمكن اختيارها لاحقاً) --</option>` + 
+                    select.innerHTML = `<option value="">-- بدون عائلة حالياً --</option>` + 
                         families.map(f => `<option value="${f.id}">${f.name || f.family_name}</option>`).join('');
                 } else {
-                    select.innerHTML = `<option value="">-- بدون عائلة حالياً (يمكن اختيارها بعد إنشاء العائلة) --</option>`;
+                    select.innerHTML = `<option value="">-- بدون عائلة حالياً --</option>`;
                 }
 
                 renderFamiliesTable();
@@ -808,7 +829,7 @@
             if (!tbody) return;
 
             if (allMasterFamilies.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-500">لا توجد عائلات مسجلة حالياً. اضغط على "+ إضافة عائلة جديدة" بالأعلى لإضافة أول عائلة!</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-500">لا توجد عائلات مسجلة حالياً.</td></tr>`;
                 return;
             }
 
@@ -840,7 +861,6 @@
             document.getElementById('familiesListModal').classList.add('hidden');
         }
 
-        // 🗑️ Delete Family
         async function deleteFamily(id) {
             if (!confirm('هل أنت تأكد من رغبتك في حذف هذه العائلة نهائياً؟')) return;
 
@@ -864,7 +884,6 @@
             }
         }
 
-        // 🏘️ Open Modal for Adding Family (الخطوة 2: يطلب اختيار عضو موجود بالداتابيز)
         function openAddFamilyModal() {
             document.getElementById('addFamilyForm').reset();
             document.getElementById('famError').classList.add('hidden');
@@ -874,7 +893,7 @@
                 headSelect.innerHTML = `<option value="">-- اختر عضو مسئول (رب الأسرة) --</option>` + 
                     allMasterMembers.map(m => `<option value="${m.id}">${m.name || m.user_name}</option>`).join('');
             } else {
-                headSelect.innerHTML = `<option value="">-- يرجى إضافة عضو واحد على الأقل في الكنيسة أولاً! --</option>`;
+                headSelect.innerHTML = `<option value="">-- يرجى إضافة عضو واحد على الأقل أولاً! --</option>`;
             }
 
             document.getElementById('addFamilyModal').classList.remove('hidden');
@@ -884,7 +903,6 @@
             document.getElementById('addFamilyModal').classList.add('hidden');
         }
 
-        // 💾 Add Family (إرسال head_id لعضو موجود لمنع خطأ Foreign Key)
         async function handleAddFamily(e) {
             e.preventDefault();
             const name = document.getElementById('famName').value.trim();
@@ -897,7 +915,7 @@
             errDiv.classList.add('hidden');
 
             if (!selectedHeadId) {
-                errDiv.innerText = "تنبيه: يجب إضافة عضو واحد على الأقل أولاً في الكنيسة، واختياره كـ رب أسرة لربط العائلة به بنجاح!";
+                errDiv.innerText = "تنبيه: يجب اختيار عضو مسئول (رب الأسرة).";
                 errDiv.classList.remove('hidden');
                 return;
             }
@@ -931,7 +949,7 @@
                     await fetchFamilies();
                     alert('تم إنشاء وإضافة العائلة بنجاح!');
                 } else {
-                    throw new Error(data.message || (Array.isArray(data.errors) ? data.errors[0].message : 'فشل إضافة العائلة'));
+                    throw new Error(data.message || 'فشل إضافة العائلة');
                 }
             } catch (err) {
                 errDiv.innerText = err.message;
@@ -947,7 +965,7 @@
             const tbody = document.getElementById('membersTableBody');
 
             try {
-                const url = `${API_BASE_URL}/api/members`;
+                const url = `${API_BASE_URL}/api/members?limit=500&offset=0`;
                 const headers = {};
                 if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
@@ -955,7 +973,7 @@
                 const data = await res.json();
 
                 if (res.status === 401) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-amber-400">يلزم تسجيل الدخول مجدداً لتحديث التوكن. <button onclick="handleLogout()" class="underline font-bold text-white">تسجيل الدخول الآن</button></td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-amber-400">يلزم تسجيل الدخول مجدداً. <button onclick="handleLogout()" class="underline font-bold text-white">تسجيل الدخول</button></td></tr>`;
                     return;
                 }
 
@@ -964,39 +982,11 @@
                 renderFamiliesTable();
 
             } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-red-400">حدث خطأ أثناء تحميل البيانات من السيرفر.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-red-400">حدث خطأ أثناء تحميل البيانات.</td></tr>`;
             }
         }
 
-        // 🔍 Backend Search Handler
-        let searchDebounce;
-        async function handleSearchBackend() {
-            const query = document.getElementById('searchInput').value.trim();
-            if (!query) {
-                fetchMembers();
-                return;
-            }
-
-            clearTimeout(searchDebounce);
-            searchDebounce = setTimeout(async () => {
-                try {
-                    const headers = {};
-                    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-
-                    const res = await fetch(`${API_BASE_URL}/api/members/search?search=${encodeURIComponent(query)}&q=${encodeURIComponent(query)}`, { headers });
-                    const data = await res.json();
-
-                    if (res.ok) {
-                        allMasterMembers = extractMembersArray(data);
-                        applyActiveSearch();
-                    }
-                } catch (err) {
-                    applyActiveSearch();
-                }
-            }, 300);
-        }
-
-        // ⚡⚡⚡ دالة البحث النشط
+        // ⚡⚡⚡ دالة البحث والتصفية النشطة
         function applyActiveSearch() {
             const tbody = document.getElementById('membersTableBody');
             const textQuery = document.getElementById('searchInput').value.trim().toLowerCase();
@@ -1014,7 +1004,11 @@
                 const matchesText = !textQuery || nameMatch || phoneMatch || nationalIdMatch;
 
                 const matchesAgeStage = !ageStageVal || stageCat === ageStageVal;
-                const matchesGender = !genderVal || (m.gender && m.gender.toUpperCase() === genderVal.toUpperCase());
+                
+                // الاعتماد على الدالة الذكية لاستخراج النوع الحقيقي
+                const memberGenderKey = getTrueGender(m);
+                const matchesGender = !genderVal || memberGenderKey === genderVal.toUpperCase();
+
                 const matchesStatus = !statusVal || (m.status && m.status.toUpperCase() === statusVal.toUpperCase());
 
                 return matchesText && matchesAgeStage && matchesGender && matchesStatus;
@@ -1031,6 +1025,8 @@
 
             tbody.innerHTML = filtered.map(m => {
                 const age = calculateAge(m.date_of_birth);
+                const isFemale = getTrueGender(m) === 'FEMALE';
+
                 return `
                 <tr class="hover:bg-slate-700/50 transition">
                     <td class="py-4 px-6 font-semibold text-white">${m.name || m.user_name || 'بدون اسم'}</td>
@@ -1044,8 +1040,8 @@
                     <td class="py-4 px-6" dir="ltr">${m.phone_number || '-'}</td>
                     <td class="py-4 px-6 font-mono text-slate-400">${m.national_id || '-'}</td>
                     <td class="py-4 px-6">
-                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${m.gender === 'MALE' ? 'bg-blue-500/10 text-blue-400' : 'bg-pink-500/10 text-pink-400'}">
-                            ${m.gender === 'MALE' ? 'ذكر' : 'أنثى'}
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${!isFemale ? 'bg-blue-500/10 text-blue-400' : 'bg-pink-500/10 text-pink-400'}">
+                            ${!isFemale ? 'ذكر' : 'أنثى'}
                         </span>
                     </td>
                     <td class="py-4 px-6">
@@ -1067,7 +1063,7 @@
             `}).join('');
         }
 
-        // 📊📊📊 فتح تقارير الفئات العمرية
+        // 📊 تقارير الفئات العمرية والنوع
         async function openReportsModal() {
             document.getElementById('reportsModal').classList.remove('hidden');
 
@@ -1096,8 +1092,8 @@
             const adultCount = repData ? parseInt(repData.adults || 0) : allMasterMembers.filter(m => { const a = calculateAge(m.date_of_birth); return a >= 36 && a <= 50; }).length;
             const elderCount = repData ? parseInt(repData.elders || 0) : allMasterMembers.filter(m => calculateAge(m.date_of_birth) > 50).length;
 
-            const males = allMasterMembers.filter(m => m.gender === 'MALE').length;
-            const females = allMasterMembers.filter(m => m.gender === 'FEMALE').length;
+            const males = allMasterMembers.filter(m => getTrueGender(m) === 'MALE').length;
+            const females = allMasterMembers.filter(m => getTrueGender(m) === 'FEMALE').length;
             const ages = allMasterMembers.map(m => calculateAge(m.date_of_birth));
             const avgAge = Math.round(ages.reduce((a, b) => a + b, 0) / (allMasterMembers.length || 1));
 
@@ -1125,7 +1121,6 @@
             document.getElementById('reportsModal').classList.add('hidden');
         }
 
-        // ➕ Open Modal for ADD (الخطوة 1: إضافة عضو أولاً كـ family_id اختياري/null)
         function openMemberModal() {
             document.getElementById('memberId').value = '';
             document.getElementById('modalTitle').innerText = 'إضافة عضو جديد';
@@ -1135,7 +1130,6 @@
             document.getElementById('memberModal').classList.remove('hidden');
         }
 
-        // ✏️ Open Modal for EDIT
         function editMember(id) {
             const m = allMasterMembers.find(item => item.id === id);
             if (!m) return;
@@ -1146,7 +1140,8 @@
             document.getElementById('mDob').value = m.date_of_birth ? m.date_of_birth.split('T')[0] : '';
             document.getElementById('mPhone').value = m.phone_number || '';
             document.getElementById('mNationalId').value = m.national_id || '';
-            document.getElementById('mGender').value = m.gender || 'MALE';
+            
+            document.getElementById('mGender').value = getTrueGender(m);
             document.getElementById('mStatus').value = m.status || 'ALIVE';
             document.getElementById('mFamilySelect').value = m.family_id || '';
 
@@ -1158,7 +1153,6 @@
             document.getElementById('memberModal').classList.add('hidden');
         }
 
-        // 💾 Save Member (إمكانية إرسال family_id كـ null بسلام لو مفيش عائلات لسه!)
         async function handleSaveMember(e) {
             e.preventDefault();
             const id = document.getElementById('memberId').value;
@@ -1186,16 +1180,6 @@
             saveBtn.disabled = true;
 
             try {
-                if (newStatus === 'DECEASED') {
-                    const headers = { 'Content-Type': 'application/json' };
-                    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-                    fetch(`${API_BASE_URL}/api/members/events/death`, {
-                        method: 'POST',
-                        headers: headers,
-                        body: JSON.stringify({ member_id: id, memberId: id })
-                    }).catch(() => {});
-                }
-
                 const url = id ? `${API_BASE_URL}/api/members/${id}` : `${API_BASE_URL}/api/members`;
                 const method = id ? 'PUT' : 'POST';
 
@@ -1214,7 +1198,7 @@
                     closeMemberModal();
                     fetchMembers();
                 } else {
-                    throw new Error(data.message || (Array.isArray(data.errors) ? data.errors[0].message : 'فشل حفظ البيانات'));
+                    throw new Error(data.message || 'فشل حفظ البيانات');
                 }
             } catch (err) {
                 modalError.innerText = err.message;
@@ -1224,7 +1208,6 @@
             }
         }
 
-        // 🗑️ Delete Member
         async function deleteMember(id) {
             if (!confirm('هل أنت تأكد من رغبتك في حذف هذا العضو نهائياً؟')) return;
 
@@ -1241,14 +1224,13 @@
                     fetchMembers();
                 } else {
                     const data = await res.json();
-                    alert(data.message || 'فشل حذف العضو من قاعدة البيانات');
+                    alert(data.message || 'فشل حذف العضو');
                 }
             } catch (err) {
                 alert('حدث خطأ أثناء الاتصال بالسيرفر');
             }
         }
 
-        // 📤 Excel Modal Controls
         function openExcelModal() {
             document.getElementById('excelForm').reset();
             document.getElementById('excelMsg').classList.add('hidden');
