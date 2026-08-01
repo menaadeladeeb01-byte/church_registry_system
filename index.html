@@ -1102,14 +1102,13 @@
             `}).join('');
         }
 
-        // 🪦 موديول الوفاة وتعيين رب الأسرة (مع فحص ذكي ومرن)
+        // 🪦 موديول الوفاة وتعيين رب الأسرة
         async function openDeathModal(memberId) {
             if (!memberId) {
                 alert("خطأ: لم يتم التعرف على معرف العضو (Member ID)!");
                 return;
             }
 
-            // سحب أحدث بيانات الأعضاء والعائلات فوراً
             await fetchMembers();
             await fetchFamilies();
 
@@ -1123,7 +1122,6 @@
             document.getElementById('deathNotes').value = '';
             document.getElementById('deathModalError').classList.add('hidden');
 
-            // فحص شامل ومطابق لأي شكل للـ Family Head
             let family = allMasterFamilies.find(f => Number(f.head_id) === Number(member.id) || Number(f.headId) === Number(member.id));
             if (!family) {
                 const memberFamilyId = member.family_id || member.familyId || member.fam_id;
@@ -1145,9 +1143,6 @@
                     const mFamId = m.family_id || m.familyId || m.fam_id;
                     return Number(mFamId) === Number(famId) && Number(m.id) !== Number(member.id) && m.status === 'ALIVE';
                 });
-                
-                console.log("Found Family:", family);
-                console.log("Eligible Family Members (Alive & Same Family):", familyMembers);
 
                 if (familyMembers.length > 0) {
                     newHeadSelect.innerHTML = `<option value="">-- اختر رب الأسرة الجديد --</option>` +
@@ -1186,7 +1181,6 @@
                 return;
             }
 
-            // التحقق الإجباري لاختيار رب الأسرة الجديد لو الحقل ظاهر
             if (!newHeadContainer.classList.contains('hidden') && (!newHeadId || newHeadId === "")) {
                 errDiv.innerText = "⚠️ هذا العضو رب أسرة! يجب اختيار بديل ليرأس العائلة أولاً.";
                 errDiv.classList.remove('hidden');
@@ -1221,33 +1215,28 @@
                 });
 
                 const data = await res.json();
+                console.log("Server Response Error/Success Data:", data); // 👇 فحص رد السيرفر المباشر
 
                 if (res.ok) {
                     closeDeathModal();
-
-                    // التحديث الفوري للذاكرة المحلية
                     const targetMember = allMasterMembers.find(m => Number(m.id) === Number(memberId));
-                    if (targetMember) {
-                        targetMember.status = 'DECEASED';
-                    }
+                    if (targetMember) targetMember.status = 'DECEASED';
                     if (parsedNewHeadId) {
                         const family = allMasterFamilies.find(f => Number(f.head_id) === Number(memberId) || Number(f.id) === Number(targetMember?.family_id));
-                        if (family) {
-                            family.head_id = parsedNewHeadId;
-                        }
+                        if (family) family.head_id = parsedNewHeadId;
                     }
                     renderFamiliesTable();
                     applyActiveSearch();
 
-                    // إعادة الجلب الإجباري من السيرفر
                     await fetchMembers();
                     await fetchFamilies();
 
                     alert('تم تسجيل الوفاة وتعيين رب الأسرة الجديد بنجاح!');
                 } else {
-                    throw new Error(data.message || 'فشل تسجيل الوفاة');
+                    throw new Error(data.message || data.error || 'فشل تسجيل الوفاة');
                 }
             } catch (err) {
+                console.error("Caught Error:", err);
                 errDiv.innerText = err.message;
                 errDiv.classList.remove('hidden');
             } finally {
