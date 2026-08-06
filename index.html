@@ -4,20 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام إدارة الكنيسة - Church Registry Dashboard</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Cairo) -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Cairo', sans-serif; }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen">
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between">
 
+    <!-- 🌐 رابط الـ Vercel الخاص بك -->
     <script>
         const API_BASE_URL = "https://church-registry-system.vercel.app"; 
     </script>
 
-    <div id="authScreen" class="flex items-center justify-center min-h-screen px-4 py-8">
+    <div id="authScreen" class="flex items-center justify-center min-h-[80vh] px-4 py-8">
         <div class="bg-slate-800 border border-slate-700 p-8 rounded-2xl shadow-2xl w-full max-w-md">
             
             <div class="text-center mb-6">
@@ -25,7 +29,7 @@
                     <i class="fa-solid fa-church text-3xl"></i>
                 </div>
                 <h1 class="text-2xl font-bold text-white">سجل الكنيسة الرقمي</h1>
-                <p class="text-slate-400 text-sm mt-1">نظام إدارة وخدمة شعب الكنيسة (خاص ومؤمن)</p>
+                <p class="text-slate-400 text-sm mt-1">نظام إدارة وخدمة شعب الكنيسة</p>
             </div>
 
             <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
@@ -550,6 +554,16 @@
             </form>
         </div>
     </div>
+
+    <!-- 👨‍💻 Developer Branding Footer -->
+    <footer class="text-center py-6 mt-12 border-t border-slate-800 text-slate-500 text-xs">
+        <p>تم تطوير وبرمجة النظام بواسطة المهندس: <span class="text-blue-400 font-bold">مينا عادل </span></p>
+        <p class="mt-1">لطلبات البرمجيات وتطوير الأنظمة الخاصة، تواصل عبر الواتساب: 
+            <a href="https://wa.me/201220601355" target="_blank" class="text-emerald-400 font-bold hover:underline" dir="ltr">
+                <i class="fa-brands fa-whatsapp"></i> +20 122 060 1355
+            </a>
+        </p>
+    </footer>
 
     <script>
         let authToken = localStorage.getItem('jwt_token') || null;
