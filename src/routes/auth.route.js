@@ -7,7 +7,7 @@ import { registerSchema } from '../validations/auth.validation.js';
 
 const router = express.Router();
 
-router.post('/register', validate(registerSchema),authController.register);
+//router.post('/register', validate(registerSchema),authController.register);
 
 router.post('/login' , authController.login);
 

@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام إدارة الكنيسة - Church Registry Dashboard</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts (Cairo) -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Cairo', sans-serif; }
@@ -16,12 +13,10 @@
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen">
 
-    <!-- 🌐 رابط الـ Vercel الخاص بك -->
     <script>
         const API_BASE_URL = "https://church-registry-system.vercel.app"; 
     </script>
 
-    <!-- 🔒 1️⃣ شاشة المصادقة (AUTH SCREEN) -->
     <div id="authScreen" class="flex items-center justify-center min-h-screen px-4 py-8">
         <div class="bg-slate-800 border border-slate-700 p-8 rounded-2xl shadow-2xl w-full max-w-md">
             
@@ -30,26 +25,13 @@
                     <i class="fa-solid fa-church text-3xl"></i>
                 </div>
                 <h1 class="text-2xl font-bold text-white">سجل الكنيسة الرقمي</h1>
-                <p class="text-slate-400 text-sm mt-1">نظام إدارة وخدمة شعب الكنيسة</p>
+                <p class="text-slate-400 text-sm mt-1">نظام إدارة وخدمة شعب الكنيسة (خاص ومؤمن)</p>
             </div>
 
-            <!-- TABS TOGGLE -->
-            <div class="flex bg-slate-900 p-1 rounded-xl mb-6 border border-slate-700">
-                <button id="tabLoginBtn" onclick="switchTab('login')" 
-                    class="flex-1 py-2 text-sm font-semibold rounded-lg text-white bg-blue-600 transition duration-200">
-                    تسجيل الدخول
-                </button>
-                <button id="tabRegisterBtn" onclick="switchTab('register')" 
-                    class="flex-1 py-2 text-sm font-semibold rounded-lg text-slate-400 hover:text-white transition duration-200">
-                    حساب جديد (Register)
-                </button>
-            </div>
-
-            <!-- 🔑 LOGIN FORM -->
             <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-1">البريد الإلكتروني</label>
-                    <input type="email" id="loginEmail" required placeholder="admin@church.com"
+                    <input type="email" id="loginEmail" required placeholder="admin@gmail.com"
                         class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-white transition">
                 </div>
                 <div>
@@ -64,37 +46,11 @@
                 </button>
             </form>
 
-            <!-- 📝 REGISTER FORM -->
-            <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-4 hidden">
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">الاسم بالكامل</label>
-                    <input type="text" id="regName" required placeholder="مينا عادل"
-                        class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-white transition">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">البريد الإلكتروني</label>
-                    <input type="email" id="regEmail" required placeholder="mena@church.com"
-                        class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-white transition">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">كلمة السر</label>
-                    <input type="password" id="regPassword" required placeholder="••••••••"
-                        class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-white transition">
-                </div>
-                <div id="registerMsg" class="hidden text-sm p-3 rounded-lg text-center"></div>
-                <button type="submit" id="registerBtn"
-                    class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl transition duration-200 shadow-lg shadow-emerald-600/30">
-                    إنشاء الحساب الان <i class="fa-solid fa-user-plus mr-1"></i>
-                </button>
-            </form>
-
         </div>
     </div>
 
-    <!-- 📊 2️⃣ لوحة التحكم الرئيسية (DASHBOARD SCREEN) -->
     <div id="dashboardScreen" class="hidden">
         
-        <!-- Header -->
         <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-40 shadow-md">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -143,10 +99,8 @@
             </div>
         </header>
 
-        <!-- Main Content -->
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-            <!-- 📈 الإحصائيات الأساسية -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl flex items-center gap-4">
                     <div class="w-12 h-12 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center text-2xl">
@@ -189,7 +143,6 @@
                 </div>
             </div>
 
-            <!-- 🔍 البحث والجدول -->
             <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-xl overflow-hidden">
                 
                 <div class="p-6 border-b border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -260,7 +213,6 @@
         </main>
     </div>
 
-    <!-- 🏠 3️⃣ MODAL: سجل العائلات -->
     <div id="familiesListModal" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-4xl shadow-2xl max-h-[90vh] overflow-y-auto">
             
@@ -308,7 +260,6 @@
         </div>
     </div>
 
-    <!-- 📊 4️⃣ MODAL: شاشة التقارير -->
     <div id="reportsModal" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-3xl shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
@@ -427,7 +378,6 @@
         </div>
     </div>
 
-    <!-- ➕/✏️ 5️⃣ MODAL: إضافة / تعديل عضو -->
     <div id="memberModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
@@ -493,7 +443,6 @@
         </div>
     </div>
 
-    <!-- 🏘️ 6️⃣ MODAL: إضافة عائلة جديدة -->
     <div id="addFamilyModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
@@ -538,7 +487,6 @@
         </div>
     </div>
 
-    <!-- 📤 7️⃣ MODAL: رفع إكسيل -->
     <div id="excelModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
             <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
@@ -566,7 +514,6 @@
         </div>
     </div>
 
-    <!-- 🪦 8️⃣ MODAL: تسجيل حالة وفاة وتعيين رب أسرة جديد -->
     <div id="deathModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
             <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
@@ -604,7 +551,6 @@
         </div>
     </div>
 
-    <!-- 📜 JAVASCRIPT LOGIC -->
     <script>
         let authToken = localStorage.getItem('jwt_token') || null;
         let allMasterMembers = [];
@@ -617,25 +563,6 @@
                 showAuth();
             }
         });
-
-        function switchTab(type) {
-            const loginForm = document.getElementById('loginForm');
-            const registerForm = document.getElementById('registerForm');
-            const tabLoginBtn = document.getElementById('tabLoginBtn');
-            const tabRegisterBtn = document.getElementById('tabRegisterBtn');
-
-            if (type === 'login') {
-                loginForm.classList.remove('hidden');
-                registerForm.classList.add('hidden');
-                tabLoginBtn.className = "flex-1 py-2 text-sm font-semibold rounded-lg text-white bg-blue-600 transition duration-200";
-                tabRegisterBtn.className = "flex-1 py-2 text-sm font-semibold rounded-lg text-slate-400 hover:text-white transition duration-200";
-            } else {
-                loginForm.classList.add('hidden');
-                registerForm.classList.remove('hidden');
-                tabLoginBtn.className = "flex-1 py-2 text-sm font-semibold rounded-lg text-slate-400 hover:text-white transition duration-200";
-                tabRegisterBtn.className = "flex-1 py-2 text-sm font-semibold rounded-lg text-white bg-emerald-600 transition duration-200";
-            }
-        }
 
         function showAuth() {
             document.getElementById('authScreen').classList.remove('hidden');
@@ -778,44 +705,6 @@
                 errorDiv.classList.remove('hidden');
             } finally {
                 loginBtn.disabled = false;
-            }
-        }
-
-        // 📝 Register
-        async function handleRegister(e) {
-            e.preventDefault();
-            const name = document.getElementById('regName').value.trim();
-            const email = document.getElementById('regEmail').value.trim();
-            const password = document.getElementById('regPassword').value;
-            const msgDiv = document.getElementById('registerMsg');
-
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, username: name, user_name: name, email, user_email: email, password, user_password: password, church_id: 1 })
-                });
-                const data = await res.json();
-
-                if (res.ok) {
-                    const token = extractToken(data);
-                    if (token) {
-                        authToken = token;
-                        localStorage.setItem('jwt_token', authToken);
-                        showDashboard();
-                    } else {
-                        document.getElementById('loginEmail').value = email;
-                        document.getElementById('loginPassword').value = password;
-                        switchTab('login');
-                        await handleLogin(e);
-                    }
-                } else {
-                    throw new Error(data.message || 'فشل إنشاء الحساب');
-                }
-            } catch (err) {
-                msgDiv.innerText = err.message;
-                msgDiv.className = "text-red-400 bg-red-500/10 p-3 rounded-lg text-center border border-red-500/20";
-                msgDiv.classList.remove('hidden');
             }
         }
 
@@ -1206,8 +1095,6 @@
                     church_id: 1
                 };
 
-                console.log("Sending Death Payload to Server:", payload);
-
                 const res = await fetch(`${API_BASE_URL}/api/members/events/death`, {
                     method: 'POST',
                     headers: headers,
@@ -1215,7 +1102,6 @@
                 });
 
                 const data = await res.json();
-                console.log("Server Response Error/Success Data:", data); // 👇 فحص رد السيرفر المباشر
 
                 if (res.ok) {
                     closeDeathModal();
@@ -1236,7 +1122,6 @@
                     throw new Error(data.message || data.error || 'فشل تسجيل الوفاة');
                 }
             } catch (err) {
-                console.error("Caught Error:", err);
                 errDiv.innerText = err.message;
                 errDiv.classList.remove('hidden');
             } finally {
